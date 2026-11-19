@@ -1,0 +1,25 @@
+{
+  "name": "Trustverifysms",
+  "short_name": "Trustverifysms",
+  "description": "Worldwide SMM services and virtual numbers with secure wallet checkout.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F8FC",
+  "theme_color": "#101A2C",
+  "icons": [
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

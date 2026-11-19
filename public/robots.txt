@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /admin
+Disallow: /api/v1
+
+Sitemap: https://trustverifysms.com/sitemap.xml
