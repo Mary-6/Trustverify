@@ -1,6 +1,6 @@
 @extends('layouts.account')
 
-@section('title', 'New Order | Trustverifysms')
+@section('title', 'New Order | TrustVerifySMS')
 
 @section('content')
 @php

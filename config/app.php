@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Trustverifysms'),
+    'name' => env('APP_NAME', 'TrustVerifySMS'),
 
     /*
     |--------------------------------------------------------------------------

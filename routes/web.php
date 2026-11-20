@@ -27,6 +27,10 @@ Route::get('/services/{product}', [CatalogueController::class, 'show'])->name('s
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/api', [PageController::class, 'apiDocs'])->name('api.docs');
 Route::get('/support', [PageController::class, 'support'])->name('support');
+Route::get('/blog', [PageController::class, 'blog'])->name('blog');
+Route::get('/pages/terms', [PageController::class, 'terms'])->name('terms');
+Route::get('/pages/privacy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/pages/refund-policy', [PageController::class, 'refundPolicy'])->name('refund');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::middleware(['auth'])->prefix('account')->name('dashboard.')->group(function () {

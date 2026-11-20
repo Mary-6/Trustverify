@@ -1,6 +1,6 @@
 @extends('layouts.account')
 
-@section('title', 'Order '.$order->order_number.' | Trustverifysms')
+@section('title', 'Order '.$order->order_number.' | TrustVerifySMS')
 
 @section('content')
 <div class="space-y-6">

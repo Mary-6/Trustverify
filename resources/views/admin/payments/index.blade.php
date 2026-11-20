@@ -1,6 +1,6 @@
 @extends('layouts.account')
 
-@section('title', 'Admin Payments | Trustverifysms')
+@section('title', 'Admin Payments | TrustVerifySMS')
 
 @section('content')
 <div class="space-y-6">

@@ -1,7 +1,7 @@
 @extends('layouts.site')
 
-@section('title', $product->name.' | Trustverifysms')
-@section('description', $product->summary ?: 'View details and purchase '.$product->name.' on Trustverifysms.')
+@section('title', $product->name.' | TrustVerifySMS')
+@section('description', $product->summary ?: 'View details and purchase '.$product->name.' on TrustVerifySMS.')
 
 @section('content')
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

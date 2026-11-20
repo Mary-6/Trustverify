@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Support\ServiceCatalogue;
+use App\Support\VirtualNumberCoverage;
 
 class HomeController extends Controller
 {
@@ -30,6 +31,7 @@ class HomeController extends Controller
 
         return view('pages.home', [
             'featuredProducts' => $featuredProducts,
+            'virtualCountries' => VirtualNumberCoverage::featured(),
             'brandStats' => $brandStats,
             'stats' => [
                 'smm_products' => $rowsByBrand->flatten(1)->count(),

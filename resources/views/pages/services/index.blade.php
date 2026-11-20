@@ -1,6 +1,6 @@
 @extends('layouts.site')
 
-@section('title', 'SMM & Virtual Number Services | Trustverifysms')
+@section('title', 'SMM & Virtual Number Services | TrustVerifySMS')
 @section('description', 'Choose a platform, service and quality option for worldwide SMM growth and virtual numbers for SMS verification with secure XAF wallet checkout.')
 
 @section('content')

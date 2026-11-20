@@ -19,7 +19,7 @@
         @foreach($ticket->messages as $message)
             <div class="rounded-2xl border {{ $message->is_admin ? 'border-brand-teal/30 bg-brand-teal-soft/60' : 'border-slate-200 bg-white' }} p-5">
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <p class="text-sm font-extrabold {{ $message->is_admin ? 'text-brand-navy' : 'text-brand-text' }}">{{ $message->is_admin ? 'Trustverifysms Support' : ($message->user?->name ?: 'Customer') }}</p>
+                    <p class="text-sm font-extrabold {{ $message->is_admin ? 'text-brand-navy' : 'text-brand-text' }}">{{ $message->is_admin ? 'TrustVerifySMS Support' : ($message->user?->name ?: 'Customer') }}</p>
                     <p class="text-xs text-brand-muted">{{ $message->created_at->format('M j, Y H:i') }}</p>
                 </div>
                 <div class="mt-3 whitespace-pre-line text-sm leading-6 text-brand-text">{{ $message->body }}</div>

@@ -1,7 +1,7 @@
 @extends('layouts.site')
 
-@section('title', 'API Documentation | Trustverifysms')
-@section('description', 'Trustverifysms customer API documentation for implemented endpoints only.')
+@section('title', 'API Documentation | TrustVerifySMS')
+@section('description', 'TrustVerifySMS customer API documentation for implemented endpoints only.')
 
 @section('content')
 <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

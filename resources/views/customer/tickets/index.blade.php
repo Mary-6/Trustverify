@@ -1,6 +1,6 @@
 @extends('layouts.account')
 
-@section('title', 'Support Tickets | Trustverifysms')
+@section('title', 'Support Tickets | TrustVerifySMS')
 
 @section('content')
 <div class="grid gap-6 lg:grid-cols-[380px_1fr]">

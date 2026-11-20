@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="application-name" content="Trustverifysms">
+    <meta name="application-name" content="TrustVerifySMS">
     <meta name="theme-color" content="#101A2C">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Trustverifysms">
+    <meta name="apple-mobile-web-app-title" content="TrustVerifySMS">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
-    <title>@yield('title', 'Account') | Trustverifysms</title>
+    <title>@yield('title', 'Account') | TrustVerifySMS</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
         <header class="border-b border-slate-200 bg-white">
             <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                 <a href="{{ route('home') }}" class="flex items-center gap-3">
-                    <img src="/images/logo-horizontal.svg" alt="Trustverifysms" class="h-9 w-auto">
+                    <img src="/images/logo-horizontal.svg" alt="TrustVerifySMS" class="h-9 w-auto">
                 </a>
                 <div class="flex items-center gap-3 text-sm font-bold">
                     @if(auth()->user()->isAdmin())
