@@ -177,9 +177,9 @@ class ServiceCatalogue
             ],
             'telegram' => [
                 'members' => ['label' => 'Group / Channel Members', 'description' => 'Choose average or high-quality Telegram members.', 'cap' => 2400, 'needles' => ['member', 'subscriber', 'follower']],
-                'future_post_views' => ['label' => 'Future Post Views', 'description' => 'Views for upcoming Telegram posts.', 'cap' => 480, 'needles' => ['future post view', 'future view', 'future views']],
+                'future_post_reactions' => ['label' => 'Future Post Reactions', 'description' => 'Reactions for upcoming Telegram posts.', 'cap' => 2560, 'needles' => ['future post reaction', 'future reaction', 'future reactions', 'auto reaction']],
+                'future_post_views' => ['label' => 'Future Post Views', 'description' => 'Views for upcoming Telegram posts.', 'cap' => 480, 'needles' => ['future post view', 'future view', 'future views', 'auto view', 'auto views']],
                 'post_views' => ['label' => 'Post Views', 'description' => 'Increase views on a specific Telegram post.', 'cap' => 24, 'needles' => ['post view', 'view']],
-                'future_post_reactions' => ['label' => 'Future Post Reactions', 'description' => 'Reactions for upcoming Telegram posts.', 'cap' => 2560, 'needles' => ['future post reaction', 'future reaction', 'future reactions']],
                 'reactions' => ['label' => 'Post Reactions', 'description' => 'Add reactions to a specific Telegram post.', 'cap' => 16, 'needles' => ['reaction', 'emoji']],
             ],
             'youtube' => [

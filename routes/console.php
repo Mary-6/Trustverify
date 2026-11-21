@@ -1,7 +1,10 @@
 <?php
 
+use App\Jobs\SyncOrderStatus;
+use App\Models\Order;
 use App\Models\Product;
 use App\Services\Suppliers\JustAnotherPanelCatalogImporter;
+use App\Services\Suppliers\TextVerifiedCatalogImporter;
 use App\Support\ServiceCatalogue;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -80,3 +83,40 @@ Artisan::command('catalogue:sync-smm-caps {--dry-run : Report without writing}',
         $this->info('Remaining active SMM products: '.Product::active()->where('type', 'smm_service')->count().'.');
     }
 })->purpose('Archive active SMM products outside the verified brand/group price catalogue');
+
+Artisan::command('orders:sync-supplier-status {--limit=200 : Maximum open orders to queue}', function () {
+    $limit = max(1, (int) $this->option('limit'));
+
+    $ids = Order::query()
+        ->whereNotNull('supplier_reference')
+        ->where('supplier_reference', '!=', '')
+        ->whereNotIn('status', [
+            Order::STATUS_COMPLETED,
+            Order::STATUS_FAILED,
+            Order::STATUS_CANCELLED,
+            Order::STATUS_REFUNDED,
+        ])
+        ->latest('updated_at')
+        ->limit($limit)
+        ->pluck('id');
+
+    foreach ($ids as $orderId) {
+        SyncOrderStatus::dispatch($orderId);
+    }
+
+    $this->info('Queued supplier status sync for '.$ids->count().' orders.');
+})->purpose('Queue supplier status checks for open orders');
+
+Artisan::command('suppliers:sync-textverified-products {--markup=10 : Retail markup percent} {--usd-xaf-rate=597.85 : USD to XAF rate} {--status=active : Product status} {--dry-run : Report without writing}', function () {
+    $result = app(TextVerifiedCatalogImporter::class)->sync([
+        'markup' => (float) $this->option('markup'),
+        'usd_xaf_rate' => (float) $this->option('usd-xaf-rate'),
+        'status' => $this->option('status'),
+        'dry_run' => (bool) $this->option('dry-run'),
+    ]);
+
+    $this->info(($result['dry_run'] ? 'Dry run complete' : 'Sync complete').': '.$result['imported'].' TextVerified products of '.$result['catalog_count'].'.');
+    if ($result['dry_run']) {
+        $this->warn('No products were written.');
+    }
+})->purpose('Sync verified TextVerified US SMS verification products');

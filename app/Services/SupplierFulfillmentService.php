@@ -90,7 +90,10 @@ class SupplierFulfillmentService
         try {
             $result = $this->suppliers->adapterFor($product)->orderStatus($order);
         } catch (Throwable $e) {
-            $this->orders->recordStatus($order, $order->status, 'Supplier status sync error: '.$e->getMessage());
+            return;
+        }
+
+        if ($result->status !== 'success') {
             return;
         }
 
@@ -103,15 +106,27 @@ class SupplierFulfillmentService
             default => $order->status,
         };
 
+        $supplierStatus = $result->data['supplier_status'] ?? $result->data['state'] ?? $result->data['status'] ?? $order->supplier_status;
+        $deliveryData = ! empty($result->data['delivery'])
+            ? array_merge($order->delivery_data ?? [], $result->data['delivery'])
+            : $order->delivery_data;
+
+        $changed = $order->status !== $status
+            || $order->supplier_status !== $supplierStatus
+            || $order->delivery_data != $deliveryData;
+
+        if (! $changed) {
+            return;
+        }
+
         $order->forceFill([
-            'supplier_status' => $result->data['supplier_status'] ?? $result->data['state'] ?? $result->data['status'] ?? $order->supplier_status,
+            'supplier_status' => $supplierStatus,
             'status' => $status,
-            'delivery_data' => ! empty($result->data['delivery'])
-                ? array_merge($order->delivery_data ?? [], $result->data['delivery'])
-                : $order->delivery_data,
+            'delivery_data' => $deliveryData,
             'completed_at' => $status === Order::STATUS_COMPLETED ? ($order->completed_at ?? now()) : $order->completed_at,
+            'cancelled_at' => $status === Order::STATUS_CANCELLED ? ($order->cancelled_at ?? now()) : $order->cancelled_at,
         ])->save();
 
-        $this->orders->recordStatus($order, $status, 'Supplier status synced.');
+        $this->orders->recordStatus($order, $status, 'Supplier status synced: '.($remote !== '' ? $remote : $status));
     }
 }
