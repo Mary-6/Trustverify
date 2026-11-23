@@ -3,6 +3,7 @@
 use App\Jobs\SyncOrderStatus;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\Suppliers\JustAnotherPanelCatalogImporter;
 use App\Services\Suppliers\TextVerifiedCatalogImporter;
 use App\Support\ServiceCatalogue;
@@ -120,3 +121,52 @@ Artisan::command('suppliers:sync-textverified-products {--markup=10 : Retail mar
         $this->warn('No products were written.');
     }
 })->purpose('Sync verified TextVerified US SMS verification products');
+
+Artisan::command('admin:create {--email= : Admin email address} {--name= : Admin display name} {--role=super_admin : Role to assign: admin or super_admin} {--password= : Password (prefer the hidden prompt)} {--force : Update the user if the email already exists}', function () {
+    $email = strtolower(trim((string) $this->option('email')));
+    $name = trim((string) $this->option('name')) ?: 'TrustVerifySMS Admin';
+    $role = (string) $this->option('role');
+    $password = (string) $this->option('password');
+
+    if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $this->error('A valid --email is required.');
+
+        return 1;
+    }
+
+    if (! in_array($role, [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true)) {
+        $this->error('Role must be admin or super_admin.');
+
+        return 1;
+    }
+
+    if ($password === '') {
+        $password = (string) $this->secret('Admin password');
+    }
+
+    if (strlen($password) < 8) {
+        $this->error('Password must be at least 8 characters.');
+
+        return 1;
+    }
+
+    if (User::where('email', $email)->exists() && ! $this->option('force')) {
+        $this->error('A user with that email already exists. Re-run with --force to update it.');
+
+        return 1;
+    }
+
+    $user = User::updateOrCreate(
+        ['email' => $email],
+        [
+            'name' => $name,
+            'password' => $password,
+            'role' => $role,
+            'status' => 'active',
+        ]
+    );
+
+    $this->info('Admin ready: '.$user->email.' ('.$user->role.').');
+
+    return 0;
+})->purpose('Create or update an admin user');
