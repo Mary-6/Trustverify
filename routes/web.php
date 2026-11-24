@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Admin\CountryController as AdminCountryController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -25,6 +26,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::post('/contact', [PageController::class, 'storeContact'])->middleware('throttle:6,1')->name('contact.store');
 Route::get('/services', [CatalogueController::class, 'index'])->name('services.index');
 Route::get('/services/{product}', [CatalogueController::class, 'show'])->name('services.show');
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
@@ -85,6 +87,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
     Route::patch('/tickets/{ticket}', [AdminTicketController::class, 'update'])->name('tickets.update');
     Route::post('/tickets/{ticket}/messages', [AdminTicketController::class, 'reply'])->name('tickets.messages.store');
+    Route::get('/contact-messages', [AdminContactMessageController::class, 'index'])->name('contact-messages.index');
+    Route::get('/contact-messages/{contactMessage}', [AdminContactMessageController::class, 'show'])->name('contact-messages.show');
+    Route::patch('/contact-messages/{contactMessage}', [AdminContactMessageController::class, 'update'])->name('contact-messages.update');
     Route::get('/supplier-logs', [SupplierLogController::class, 'index'])->name('supplier-logs.index');
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
     Route::patch('/settings', [AdminSettingController::class, 'update'])->name('settings.update');

@@ -17,6 +17,8 @@
                 <div><label class="text-sm font-bold text-brand-text">Site name</label><input name="site_name" value="{{ old('site_name', $settings['general']['site_name']) }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3"></div>
                 <div><label class="text-sm font-bold text-brand-text">Support email</label><input name="support_email" type="email" value="{{ old('support_email', $settings['general']['support_email']) }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3"></div>
                 <div><label class="text-sm font-bold text-brand-text">Primary currency</label><input name="primary_currency" value="{{ old('primary_currency', $settings['general']['primary_currency']) }}" maxlength="3" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3"></div>
+                <div><label class="text-sm font-bold text-brand-text">Contact phone</label><input name="contact_phone" value="{{ old('contact_phone', $settings['general']['contact_phone']) }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3" placeholder="Official business phone"></div>
+                <div class="sm:col-span-2"><label class="text-sm font-bold text-brand-text">Business address</label><textarea name="contact_address" rows="3" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3">{{ old('contact_address', $settings['general']['contact_address']) }}</textarea></div>
             </div>
         </div>
 

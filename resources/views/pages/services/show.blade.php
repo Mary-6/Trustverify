@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-    <a href="{{ route('services.index') }}" class="text-sm font-bold text-brand-teal hover:text-brand-gold">← Back to services</a>
+    <a href="{{ $backUrl }}" class="text-sm font-bold text-brand-teal hover:text-brand-gold">← Back to services</a>
     <div class="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
         <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">{{ $product->category?->name ?? str_replace('_', ' ', $product->type) }}</p>

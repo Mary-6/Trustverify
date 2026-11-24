@@ -19,6 +19,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Customers</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['customers']) }}</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Pending payments</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['pending_payments']) }}</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Open tickets</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['open_tickets']) }}</p></div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">New messages</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['new_messages']) }}</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Supplier failures</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['supplier_failures']) }}</p></div>
     </div>
 
@@ -27,6 +28,7 @@
         <a href="{{ route('admin.products.index') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-brand-navy shadow-sm hover:border-brand-teal">Manage products</a>
         <a href="{{ route('admin.payments.index') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-brand-navy shadow-sm hover:border-brand-teal">Review payments</a>
         <a href="{{ route('admin.tickets.index') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-brand-navy shadow-sm hover:border-brand-teal">Open tickets</a>
+        <a href="{{ route('admin.contact-messages.index') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-brand-navy shadow-sm hover:border-brand-teal">Messages</a>
     </div>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-6">

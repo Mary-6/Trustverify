@@ -15,7 +15,7 @@ class CatalogueController extends Controller
     {
         $serviceTypes = [
             'smm_service' => 'SMM Services',
-            'virtual_number' => 'Virtual Numbers',
+            'virtual_number' => 'Verification Services',
         ];
 
         $requestedService = $request->filled('service')
@@ -52,14 +52,33 @@ class CatalogueController extends Controller
     {
         abort_unless($product->is_active && $product->status === 'active', 404);
 
+        $product->load('category');
+
         return view('pages.services.show', [
-            'product' => $product->load('category'),
+            'product' => $product,
+            'backUrl' => route('services.index', $this->catalogueQuery($product)),
             'related' => Product::active()->where('id', '!=', $product->id)
                 ->where('type', $product->type)
                 ->latest('id')
                 ->limit(6)
                 ->get(),
         ]);
+    }
+
+    private function catalogueQuery(Product $product): array
+    {
+        $service = $product->type === 'virtual_number' ? 'virtual_number' : 'smm_service';
+        $query = ['service' => $service];
+
+        if ($service === 'smm_service' && $product->category?->slug) {
+            $query['brand'] = $product->category->slug;
+            $group = ServiceCatalogue::groupForProduct($product);
+            if ($group) {
+                $query['group'] = $group;
+            }
+        }
+
+        return $query;
     }
 
     private function smmIndex(Request $request, array $serviceOptions, string $selectedService, string $selectedServiceLabel)

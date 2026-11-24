@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContactMessage;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
@@ -29,6 +30,7 @@ class DashboardController extends Controller
                 'customers' => User::where('role', User::ROLE_CUSTOMER)->count(),
                 'pending_payments' => Payment::where('status', Payment::STATUS_PENDING)->count(),
                 'open_tickets' => SupportTicket::whereIn('status', ['open', 'pending'])->count(),
+                'new_messages' => ContactMessage::where('status', 'new')->count(),
                 'supplier_failures' => SupplierLog::where('status', 'failed')->count(),
             ],
             'recentOrders' => Order::with(['user', 'product'])->latest()->limit(10)->get(),

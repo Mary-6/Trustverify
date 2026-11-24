@@ -1,15 +1,23 @@
 @extends('layouts.site')
 
-@section('title', 'SMM & Virtual Number Services | TrustVerifySMS')
-@section('description', 'Choose a platform, service and quality option for worldwide SMM growth and virtual numbers for SMS verification with secure XAF wallet checkout.')
+@php
+    $isSmm = $selectedService === 'smm_service';
+    $pageTitle = $isSmm ? 'SMM Services | TrustVerifySMS' : 'Verification Services | TrustVerifySMS';
+    $pageDescription = $isSmm ? 'Choose a platform and start growing with SMM services.' : 'Choose a verification service and check availability before checkout.';
+    $heading = $isSmm ? 'Choose a platform and start growing.' : 'Choose a verification service.';
+    $subheading = $isSmm ? 'Pick a platform, choose the service you need, then select a quality option and quantity. Prices are shown per 1,000 where applicable.' : 'Pick a verification product, review price and availability, then complete checkout from your wallet.';
+@endphp
+
+@section('title', $pageTitle)
+@section('description', $pageDescription)
 
 @section('content')
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Catalogue</p>
-            <h1 class="mt-2 text-4xl font-extrabold text-brand-navy">What do you want to grow?</h1>
-            <p class="mt-3 max-w-2xl text-brand-muted">Pick a platform, choose the service you need, then select a quality option and quantity. Prices are shown per 1,000 where applicable.</p>
+            <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">{{ $isSmm ? 'SMM catalogue' : 'Verification catalogue' }}</p>
+            <h1 class="mt-2 text-4xl font-extrabold text-brand-navy">{{ $heading }}</h1>
+            <p class="mt-3 max-w-2xl text-brand-muted">{{ $subheading }}</p>
         </div>
         @if($selectedService !== 'smm_service' || $selectedGroup)
             <form method="GET" action="{{ route('services.index') }}" class="flex w-full max-w-xl gap-2">
@@ -24,7 +32,7 @@
 
     <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <form method="GET" action="{{ route('services.index') }}">
-            <label for="service" class="text-sm font-bold text-brand-navy">Service</label>
+            <label for="service" class="text-sm font-bold text-brand-navy">Catalogue</label>
             <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <select id="service" name="service" class="w-full rounded-xl border-slate-300 px-4 py-3 text-sm focus:border-brand-teal focus:ring-brand-teal" onchange="this.form.submit()">
                     @foreach($serviceOptions as $option)
@@ -126,7 +134,8 @@
             <div class="mt-8">
                 <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Step 2</p>
+                        <a href="{{ route('services.index', ['service' => 'smm_service']) }}" class="text-sm font-bold text-brand-teal hover:text-brand-gold">← Choose a platform</a>
+                        <p class="mt-2 text-sm font-bold uppercase tracking-wider text-brand-teal">Step 2</p>
                         <h2 class="mt-1 text-2xl font-extrabold text-brand-navy">What do you need on {{ $selectedBrand['label'] }}?</h2>
                         <p class="mt-1 text-sm text-brand-muted">Choose one service category. Services marked coming soon are not published until verified pricing is available.</p>
                     </div>

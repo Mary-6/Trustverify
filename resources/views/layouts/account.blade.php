@@ -62,6 +62,7 @@
                                     <a href="{{ route('admin.payments.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Payments</a>
                                     <a href="{{ route('admin.customers.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Customers</a>
                                     <a href="{{ route('admin.tickets.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Tickets</a>
+                                    <a href="{{ route('admin.contact-messages.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Messages</a>
                                     <a href="{{ route('admin.supplier-logs.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Supplier logs</a>
                                     <a href="{{ route('admin.settings.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Settings</a>
                                 </div>

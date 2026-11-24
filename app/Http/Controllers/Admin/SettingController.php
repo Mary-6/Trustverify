@@ -15,6 +15,8 @@ class SettingController extends Controller
                 'general' => [
                     'site_name' => $settings->get('general.site_name', config('app.name')),
                     'support_email' => $settings->get('general.support_email'),
+                    'contact_phone' => $settings->get('general.contact_phone'),
+                    'contact_address' => $settings->get('general.contact_address'),
                     'primary_currency' => $settings->get('general.primary_currency', 'XAF'),
                 ],
                 'pricing' => [
@@ -40,6 +42,8 @@ class SettingController extends Controller
         $data = $request->validate([
             'site_name' => ['nullable', 'string', 'max:120'],
             'support_email' => ['nullable', 'email', 'max:120'],
+            'contact_phone' => ['nullable', 'string', 'max:80'],
+            'contact_address' => ['nullable', 'string', 'max:500'],
             'primary_currency' => ['nullable', 'string', 'size:3'],
             'global_markup_percent' => ['nullable', 'numeric', 'min:0', 'max:1000'],
             'global_markup_fixed' => ['nullable', 'numeric', 'min:0'],
@@ -51,6 +55,8 @@ class SettingController extends Controller
 
         $settings->set('general.site_name', $data['site_name'] ?? config('app.name'), 'string', 'general');
         $settings->set('general.support_email', $data['support_email'] ?? null, 'string', 'general');
+        $settings->set('general.contact_phone', $data['contact_phone'] ?? null, 'string', 'general');
+        $settings->set('general.contact_address', $data['contact_address'] ?? null, 'string', 'general');
         $settings->set('general.primary_currency', strtoupper($data['primary_currency'] ?? 'XAF'), 'string', 'general');
         $settings->set('pricing.global_markup_percent', $data['global_markup_percent'] ?? 30, 'integer', 'pricing');
         $settings->set('pricing.global_markup_fixed', $data['global_markup_fixed'] ?? 0, 'integer', 'pricing');

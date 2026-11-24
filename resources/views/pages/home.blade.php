@@ -4,6 +4,7 @@
 @section('description', 'Buy SMM services for Instagram, TikTok, Facebook, YouTube, Telegram and WhatsApp, plus virtual numbers for SMS verification with secure wallet checkout.')
 
 @section('content')
+@php($statsUnavailable = ! $statsAvailable)
 <section class="relative overflow-hidden bg-brand-navy text-white">
     <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 15% 20%, #06B6D4 0, transparent 32%), radial-gradient(circle at 85% 15%, #F59E0B 0, transparent 28%), radial-gradient(circle at 65% 90%, #06B6D4 0, transparent 30%);"></div>
     <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-brand-bg to-transparent"></div>
@@ -17,9 +18,9 @@
                 <a href="{{ route('services.index', ['service' => 'smm_service']) }}" class="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-extrabold text-white backdrop-blur hover:bg-white/10">Explore services</a>
             </div>
             <div class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-teal">{{ number_format($stats['smm_products']) }}</p><p class="text-sm text-slate-300">Active SMM products</p></div>
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-teal">{{ number_format($stats['brands']) }}</p><p class="text-sm text-slate-300">Platforms covered</p></div>
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-teal">{{ number_format($stats['virtual_numbers']) }}</p><p class="text-sm text-slate-300">Verification products</p></div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-teal">{{ $statsUnavailable ? '—' : number_format((float) $stats['smm_products']) }}</p><p class="text-sm text-slate-300">{{ $statsUnavailable ? 'Live figures unavailable' : 'Active SMM products' }}</p></div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-teal">{{ $statsUnavailable ? '—' : number_format((float) $stats['brands']) }}</p><p class="text-sm text-slate-300">{{ $statsUnavailable ? 'Live figures unavailable' : 'Platforms covered' }}</p></div>
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-teal">{{ $statsUnavailable ? '—' : number_format((float) $stats['virtual_numbers']) }}</p><p class="text-sm text-slate-300">{{ $statsUnavailable ? 'Live figures unavailable' : 'Verification products' }}</p></div>
                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"><p class="text-2xl font-extrabold text-brand-gold">MTN MoMo</p><p class="text-sm text-slate-300">Secure wallet funding</p></div>
             </div>
         </div>
@@ -186,13 +187,21 @@
             <div class="rounded-3xl border border-slate-200 bg-brand-bg p-7">
                 <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">SMM services</p>
                 <h3 class="mt-3 text-2xl font-extrabold text-brand-navy">Worldwide coverage</h3>
-                <p class="mt-3 text-sm leading-6 text-brand-muted">{{ number_format($stats['smm_products']) }} active products across {{ number_format($stats['brands']) }} platforms. Choose a platform, service group, option and quantity before checkout.</p>
+                @if($statsUnavailable)
+                    <p class="mt-3 text-sm leading-6 text-brand-muted">Live catalogue figures are temporarily unavailable. Browse the catalogue for current products and pricing.</p>
+                @else
+                    <p class="mt-3 text-sm leading-6 text-brand-muted">{{ number_format((float) $stats['smm_products']) }} active products across {{ number_format((float) $stats['brands']) }} platforms. Choose a platform, service group, option and quantity before checkout.</p>
+                @endif
                 <a href="{{ route('services.index', ['service' => 'smm_service']) }}" class="mt-5 inline-flex text-sm font-bold text-brand-teal hover:text-brand-gold">Browse SMM services →</a>
             </div>
             <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
                 <p class="text-sm font-bold uppercase tracking-wider text-brand-gold">Virtual numbers</p>
                 <h3 class="mt-3 text-2xl font-extrabold text-brand-navy">Global SMS verification</h3>
-                <p class="mt-3 text-sm leading-6 text-brand-muted">{{ number_format($stats['virtual_numbers']) }} verification products are live today, with country coverage expanding across supported markets. Sign in to view live availability, prices and delivery details.</p>
+                @if($statsUnavailable)
+                    <p class="mt-3 text-sm leading-6 text-brand-muted">Verification availability is being refreshed. Open the catalogue to see current products and pricing.</p>
+                @else
+                    <p class="mt-3 text-sm leading-6 text-brand-muted">{{ number_format((float) $stats['virtual_numbers']) }} verification products are live today, with country coverage expanding across supported markets. Sign in to view live availability, prices and delivery details.</p>
+                @endif
                 <a href="{{ route('services.index', ['service' => 'virtual_number']) }}" class="mt-5 inline-flex text-sm font-bold text-brand-teal hover:text-brand-gold">View verification services →</a>
             </div>
             <div class="rounded-3xl border border-dashed border-slate-300 bg-brand-bg p-7">
@@ -255,30 +264,60 @@
     </div>
 
     <div class="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
-        <a href="{{ route('dashboard.wallet.index') }}" class="group relative overflow-hidden rounded-3xl border border-brand-teal/40 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-2xl">
+        <a href="{{ route('dashboard.wallet.index') }}" class="group relative overflow-hidden rounded-3xl bg-[#FFCB05] p-6 text-brand-navy shadow-sm transition hover:-translate-y-1 hover:shadow-2xl">
             <div class="flex items-start justify-between gap-3">
-                <h3 class="text-lg font-extrabold text-brand-navy">MTN Mobile Money</h3>
-                <span class="rounded-full bg-brand-teal-soft px-3 py-1 text-xs font-bold text-brand-navy">Available</span>
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 p-2"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/MTN%20Logo.svg?width=200" alt="MTN logo" class="h-8 w-8" loading="lazy"></span>
+                <span class="rounded-full bg-brand-navy px-3 py-1 text-xs font-bold text-white">Available</span>
             </div>
-            <p class="mt-3 text-sm leading-6 text-brand-muted">Top up your wallet and pay for orders with MTN MoMo.</p>
-            <p class="mt-5 text-sm font-extrabold text-brand-teal">Top up wallet →</p>
+            <h3 class="mt-4 text-lg font-extrabold">MTN Mobile Money</h3>
+            <p class="mt-3 text-sm leading-6 text-brand-navy/80">Top up your wallet and pay for orders with MTN MoMo.</p>
+            <p class="mt-5 text-sm font-extrabold text-brand-navy">Top up wallet →</p>
         </a>
 
-        @foreach([
-            ['Orange Money', 'Mobile money option in preparation.'],
-            ['Visa/Mastercard', 'Card payments are not enabled yet.'],
-            ['PayPal', 'PayPal deposits are not enabled yet.'],
-            ['Other methods', 'Additional payment options are planned.'],
-        ] as [$method, $description])
-            <div class="rounded-3xl border border-slate-200 bg-brand-bg p-6 opacity-80" aria-disabled="true">
-                <div class="flex items-start justify-between gap-3">
-                    <h3 class="text-lg font-extrabold text-brand-navy">{{ $method }}</h3>
-                    <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-brand-muted">Coming soon</span>
-                </div>
-                <p class="mt-3 text-sm leading-6 text-brand-muted">{{ $description }}</p>
-                <p class="mt-5 text-sm font-extrabold text-brand-muted">Disabled</p>
+        <div class="rounded-3xl bg-[#FF7900] p-6 text-white shadow-sm" aria-disabled="true">
+            <div class="flex items-start justify-between gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 p-2"><img src="https://cdn.simpleicons.org/orange/ffffff" alt="Orange logo" class="h-7 w-7" loading="lazy"></span>
+                <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">Coming soon</span>
             </div>
-        @endforeach
+            <h3 class="mt-4 text-lg font-extrabold">Orange Money</h3>
+            <p class="mt-3 text-sm leading-6 text-white/85">Mobile money option in preparation.</p>
+            <p class="mt-5 text-sm font-extrabold text-white/80">Disabled</p>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm" aria-disabled="true">
+            <div class="flex items-start justify-between gap-3">
+                <span class="flex items-center gap-2">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F4F6FB] p-2"><img src="https://cdn.simpleicons.org/visa/1A1F71" alt="Visa logo" class="h-6 w-6" loading="lazy"></span>
+                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F4F6FB] p-2"><img src="https://cdn.simpleicons.org/mastercard" alt="Mastercard logo" class="h-6 w-6" loading="lazy"></span>
+                </span>
+                <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-brand-muted">Coming soon</span>
+            </div>
+            <h3 class="mt-4 text-lg font-extrabold text-brand-navy">Visa / Mastercard</h3>
+            <p class="mt-3 text-sm leading-6 text-brand-muted">Card payments are not enabled yet.</p>
+            <p class="mt-5 text-sm font-extrabold text-brand-muted">Disabled</p>
+        </div>
+
+        <div class="rounded-3xl bg-[#003087] p-6 text-white shadow-sm" aria-disabled="true">
+            <div class="flex items-start justify-between gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 p-2"><img src="https://cdn.simpleicons.org/paypal/ffffff" alt="PayPal logo" class="h-7 w-7" loading="lazy"></span>
+                <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">Coming soon</span>
+            </div>
+            <h3 class="mt-4 text-lg font-extrabold">PayPal</h3>
+            <p class="mt-3 text-sm leading-6 text-white/85">PayPal deposits are not enabled yet.</p>
+            <p class="mt-5 text-sm font-extrabold text-white/80">Disabled</p>
+        </div>
+
+        <div class="rounded-3xl bg-brand-navy p-6 text-white shadow-sm" aria-disabled="true">
+            <div class="flex items-start justify-between gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M7 15h4m4 0h4M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"/></svg>
+                </span>
+                <span class="rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-white">Coming soon</span>
+            </div>
+            <h3 class="mt-4 text-lg font-extrabold">Other methods</h3>
+            <p class="mt-3 text-sm leading-6 text-white/85">Additional payment options are planned.</p>
+            <p class="mt-5 text-sm font-extrabold text-white/80">Disabled</p>
+        </div>
     </div>
 
     <div class="mt-8 grid gap-4 sm:grid-cols-3">
