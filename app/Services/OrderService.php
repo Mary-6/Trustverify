@@ -124,6 +124,43 @@ class OrderService
         });
     }
 
+    public function cancel(Order $order, ?User $actor = null, ?string $note = null): Order
+    {
+        return DB::transaction(function () use ($order, $actor, $note) {
+            $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if ($order->status === Order::STATUS_CANCELLED) {
+                return $order;
+            }
+
+            if ($order->isTerminal()) {
+                throw new RuntimeException('Only open orders can be cancelled.');
+            }
+
+            if ($order->supplier_reference || $order->submitted_at || $order->status !== Order::STATUS_PENDING) {
+                throw new RuntimeException('This order has already been submitted to the provider and cannot be cancelled here.');
+            }
+
+            $this->wallets->credit($order->user, $order->total_price, WalletTransaction::TYPE_REFUND, [
+                'idempotency_key' => 'cancel-'.$order->idempotency_key,
+                'reference' => $order->order_number,
+                'metadata' => ['order_id' => $order->id, 'reason' => $note ?: 'Customer cancellation'],
+                'created_by' => $actor?->id,
+            ]);
+
+            $order->forceFill([
+                'status' => Order::STATUS_CANCELLED,
+                'cancelled_at' => now(),
+                'admin_notes' => trim(($order->admin_notes ? $order->admin_notes."\n" : '').($note ?: 'Cancelled by customer.')),
+            ])->save();
+
+            $this->recordStatus($order, Order::STATUS_CANCELLED, $note ?: 'Cancelled by customer.', $actor);
+            $this->audit->log('order.cancelled', $order, ['note' => $note], $actor);
+
+            return $order;
+        });
+    }
+
     public function recordStatus(Order $order, string $status, ?string $note = null, ?User $actor = null): void
     {
         OrderStatusHistory::create([

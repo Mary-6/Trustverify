@@ -11,12 +11,13 @@ class ServiceCatalogue
     public static function brands(): array
     {
         return [
-            'instagram' => ['label' => 'Instagram', 'sort_order' => 1],
-            'tiktok' => ['label' => 'TikTok', 'sort_order' => 2],
-            'facebook' => ['label' => 'Facebook', 'sort_order' => 3],
-            'youtube' => ['label' => 'YouTube', 'sort_order' => 4],
-            'telegram' => ['label' => 'Telegram', 'sort_order' => 5],
-            'whatsapp' => ['label' => 'WhatsApp', 'sort_order' => 6],
+            'instagram' => ['label' => 'Instagram', 'sort_order' => 1, 'logo' => 'instagram', 'color' => '#E1306C', 'gradient' => 'linear-gradient(135deg,#833AB4 0%,#E1306C 45%,#F56040 75%,#FCAF45 100%)'],
+            'tiktok' => ['label' => 'TikTok', 'sort_order' => 2, 'logo' => 'tiktok', 'color' => '#FE2C55', 'gradient' => 'linear-gradient(135deg,#010101 0%,#25F4EE 55%,#FE2C55 100%)'],
+            'facebook' => ['label' => 'Facebook', 'sort_order' => 3, 'logo' => 'facebook', 'color' => '#1877F2', 'gradient' => 'linear-gradient(135deg,#1877F2 0%,#0A5BE0 100%)'],
+            'youtube' => ['label' => 'YouTube', 'sort_order' => 4, 'logo' => 'youtube', 'color' => '#FF0000', 'gradient' => 'linear-gradient(135deg,#FF0000 0%,#FF4E45 100%)'],
+            'telegram' => ['label' => 'Telegram', 'sort_order' => 5, 'logo' => 'telegram', 'color' => '#229ED9', 'gradient' => 'linear-gradient(135deg,#229ED9 0%,#1E96D4 100%)'],
+            'whatsapp' => ['label' => 'WhatsApp', 'sort_order' => 6, 'logo' => 'whatsapp', 'color' => '#25D366', 'gradient' => 'linear-gradient(135deg,#128C7E 0%,#25D366 100%)'],
+            'x-twitter' => ['label' => 'X / Twitter', 'sort_order' => 7, 'logo' => 'x', 'color' => '#000000', 'gradient' => 'linear-gradient(135deg,#1F2937 0%,#000000 100%)'],
         ];
     }
 
@@ -126,6 +127,7 @@ class ServiceCatalogue
             'youtube' => 'youtube',
             'telegram' => 'telegram',
             'whatsapp' => 'whatsapp',
+            'x-twitter' => 'twitter',
         ];
 
         foreach ($needles as $other => $needle) {
@@ -187,6 +189,13 @@ class ServiceCatalogue
                 'views' => ['label' => 'Video Views', 'description' => 'Increase views on your YouTube videos.', 'cap' => 1120, 'needles' => ['view', 'watch', 'play']],
                 'likes' => ['label' => 'Video Likes', 'description' => 'Boost likes on your YouTube videos.', 'cap' => 4800, 'needles' => ['like']],
                 'comments' => ['label' => 'Custom Comments', 'description' => 'Add custom comments to YouTube videos.', 'cap' => 8000, 'needles' => ['comment']],
+            ],
+            'x-twitter' => [
+                'followers' => ['label' => 'Followers', 'description' => 'Grow followers on X / Twitter.', 'cap' => null, 'needles' => ['follower', 'subscriber']],
+                'likes' => ['label' => 'Likes', 'description' => 'Boost likes on X / Twitter posts.', 'cap' => null, 'needles' => ['like']],
+                'retweets' => ['label' => 'Retweets', 'description' => 'Increase retweets and reposts on X / Twitter.', 'cap' => null, 'needles' => ['retweet', 'repost']],
+                'views' => ['label' => 'Views', 'description' => 'Increase views on X / Twitter posts.', 'cap' => null, 'needles' => ['view', 'impression']],
+                'comments' => ['label' => 'Comments', 'description' => 'Add comments on X / Twitter posts.', 'cap' => null, 'needles' => ['comment']],
             ],
         ];
     }

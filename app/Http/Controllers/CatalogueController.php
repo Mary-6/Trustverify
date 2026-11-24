@@ -45,7 +45,7 @@ class CatalogueController extends Controller
             return $this->smmIndex($request, $serviceOptions, $selectedService, $selectedServiceLabel);
         }
 
-        return $this->catalogIndex($request, $serviceTypes, $serviceOptions, $selectedService, $selectedServiceLabel);
+        return app(VerificationController::class)->index($request);
     }
 
     public function show(Product $product)
@@ -98,6 +98,9 @@ class CatalogueController extends Controller
             $brandOptions[] = [
                 'slug' => $slug,
                 'label' => $brand['label'],
+                'logo' => $brand['logo'] ?? $slug,
+                'color' => $brand['color'] ?? '#0F172A',
+                'gradient' => $brand['gradient'] ?? null,
                 'available' => $productCount > 0,
                 'product_count' => $productCount,
             ];

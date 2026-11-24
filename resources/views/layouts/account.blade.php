@@ -42,10 +42,10 @@
                 </a>
 
                 <nav class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto text-sm font-bold" aria-label="Account navigation">
-                    <a href="{{ route('services.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('services.*') || request()->routeIs('dashboard.orders.create') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted hover:bg-slate-100 hover:text-brand-navy' }}">Order</a>
+                    <a href="{{ route('services.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('services.*') || request()->routeIs('dashboard.orders.create') || request()->routeIs('dashboard.verification.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted hover:bg-slate-100 hover:text-brand-navy' }}">Order</a>
                     <a href="{{ route('dashboard.orders.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('dashboard.orders.index') || request()->routeIs('dashboard.orders.show') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted hover:bg-slate-100 hover:text-brand-navy' }}">My Orders</a>
                     <a href="{{ route('dashboard.wallet.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('dashboard.wallet.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted hover:bg-slate-100 hover:text-brand-navy' }}">Wallet</a>
-                    <a href="{{ route('dashboard.overview') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('dashboard.overview') || request()->routeIs('dashboard.numbers.*') || request()->routeIs('dashboard.api-keys.*') || request()->routeIs('dashboard.tickets.*') || request()->routeIs('profile') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted hover:bg-slate-100 hover:text-brand-navy' }}">More</a>
+                    <a href="{{ route('dashboard.overview') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('dashboard.overview') || request()->routeIs('dashboard.numbers.*') || request()->routeIs('profile') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted hover:bg-slate-100 hover:text-brand-navy' }}">More</a>
                 </nav>
 
                 <div class="flex shrink-0 items-center gap-2">

@@ -45,9 +45,9 @@
         </div>
         <header class="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur">
             <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-                <a href="{{ route('home') }}" class="flex items-center gap-3" aria-label="TrustVerifySMS home">
+                <div class="flex items-center gap-3">
                     <img src="/images/logo-horizontal.svg" alt="TrustVerifySMS" class="h-9 w-auto">
-                </a>
+                </div>
                 <nav class="hidden items-center gap-2 text-sm font-semibold text-brand-muted lg:flex" aria-label="Primary">
                     <a href="{{ route('home') }}" class="rounded-lg px-3 py-2 transition hover:bg-brand-teal-soft hover:text-brand-navy {{ request()->routeIs('home') ? 'bg-brand-teal-soft text-brand-navy' : '' }}">Home</a>
                     <a href="{{ route('about') }}" class="rounded-lg px-3 py-2 transition hover:bg-brand-teal-soft hover:text-brand-navy {{ request()->routeIs('about') ? 'bg-brand-teal-soft text-brand-navy' : '' }}">About</a>
@@ -81,7 +81,7 @@
                     </div>
                     <a href="{{ route('contact') }}" class="rounded-lg px-3 py-2 transition hover:bg-brand-teal-soft hover:text-brand-navy {{ request()->routeIs('contact') ? 'bg-brand-teal-soft text-brand-navy' : '' }}">Contact</a>
                     @auth
-                        <a href="{{ route('dashboard.overview') }}" class="rounded-lg bg-brand-navy px-4 py-2 text-sm font-bold text-white hover:bg-brand-navy-light">Dashboard</a>
+                        <a href="{{ route('dashboard.overview') }}" class="rounded-lg bg-brand-navy px-4 py-2 text-sm font-bold text-white hover:bg-brand-navy-light">Account</a>
                     @else
                         <a href="{{ route('login') }}" class="rounded-lg bg-brand-navy px-4 py-2 text-sm font-bold text-white hover:bg-brand-navy-light {{ request()->routeIs('login') ? 'ring-2 ring-brand-gold' : '' }}">Login</a>
                     @endauth
@@ -103,7 +103,7 @@
                             <a href="{{ route('services.index', ['service' => 'virtual_number']) }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Verification Services</a>
                             <a href="{{ route('contact') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Contact</a>
                             @auth
-                                <a href="{{ route('dashboard.overview') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Dashboard</a>
+                                <a href="{{ route('dashboard.overview') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Account</a>
                             @else
                                 <a href="{{ route('login') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Login</a>
                                 <a href="{{ route('register') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Create account</a>
@@ -173,6 +173,7 @@
             </div>
         </footer>
     </div>
+    @stack('scripts')
     @include('components.theme-toggle')
 </body>
 </html>

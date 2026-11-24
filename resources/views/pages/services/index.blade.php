@@ -5,7 +5,7 @@
     $pageTitle = $isSmm ? 'SMM Services | TrustVerifySMS' : 'Verification Services | TrustVerifySMS';
     $pageDescription = $isSmm ? 'Choose a platform and start growing with SMM services.' : 'Choose a verification service and check availability before checkout.';
     $heading = $isSmm ? 'Choose a platform and start growing.' : 'Choose a verification service.';
-    $subheading = $isSmm ? 'Pick a platform, choose the service you need, then select a quality option and quantity. Prices are shown per 1,000 where applicable.' : 'Pick a verification product, review price and availability, then complete checkout from your wallet.';
+    $subheading = $isSmm ? '' : 'Pick a verification product, review price and availability, then complete checkout from your wallet.';
 @endphp
 
 @section('title', $pageTitle)
@@ -15,9 +15,9 @@
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">{{ $isSmm ? 'SMM catalogue' : 'Verification catalogue' }}</p>
+            <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">{{ $isSmm ? 'SMM Services' : 'Verification Services' }}</p>
             <h1 class="mt-2 text-4xl font-extrabold text-brand-navy">{{ $heading }}</h1>
-            <p class="mt-3 max-w-2xl text-brand-muted">{{ $subheading }}</p>
+            @if($subheading)<p class="mt-3 max-w-2xl text-brand-muted">{{ $subheading }}</p>@endif
         </div>
         @if($selectedService !== 'smm_service' || $selectedGroup)
             <form method="GET" action="{{ route('services.index') }}" class="flex w-full max-w-xl gap-2">
@@ -30,48 +30,40 @@
         @endif
     </div>
 
-    <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <form method="GET" action="{{ route('services.index') }}">
-            <label for="service" class="text-sm font-bold text-brand-navy">Catalogue</label>
-            <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <select id="service" name="service" class="w-full rounded-xl border-slate-300 px-4 py-3 text-sm focus:border-brand-teal focus:ring-brand-teal" onchange="this.form.submit()">
-                    @foreach($serviceOptions as $option)
-                        <option value="{{ $option['slug'] }}" @selected($selectedService === $option['slug'])>{{ $option['label'] }}{{ $option['available'] ? '' : ' (Coming soon)' }}</option>
-                    @endforeach
-                </select>
-                <button class="rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Apply</button>
-            </div>
-        </form>
-    </div>
+    @if(! $isSmm)
+        <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <form method="GET" action="{{ route('services.index') }}">
+                <label for="service" class="text-sm font-bold text-brand-navy">Catalogue</label>
+                <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <select id="service" name="service" class="w-full rounded-xl border-slate-300 px-4 py-3 text-sm focus:border-brand-teal focus:ring-brand-teal" onchange="this.form.submit()">
+                        @foreach($serviceOptions as $option)
+                            <option value="{{ $option['slug'] }}" @selected($selectedService === $option['slug'])>{{ $option['label'] }}{{ $option['available'] ? '' : ' (Coming soon)' }}</option>
+                        @endforeach
+                    </select>
+                    <button class="rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Apply</button>
+                </div>
+            </form>
+        </div>
+    @endif
 
     @if($selectedService === 'smm_service')
         @if($awaitingBrand)
             <div class="mt-8">
-                <div class="mb-5">
-                    <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Step 1</p>
-                    <h2 class="mt-1 text-2xl font-extrabold text-brand-navy">Choose a platform</h2>
-                </div>
-                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach($brandOptions as $brand)
-                        @if($brand['available'])
-                            <a href="{{ route('services.index', ['service' => 'smm_service', 'brand' => $brand['slug']]) }}" class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-brand-teal/50 hover:shadow-xl">
-                                <div class="flex items-start justify-between gap-3">
-                                    <h3 class="text-xl font-extrabold text-brand-navy group-hover:text-brand-teal">{{ $brand['label'] }}</h3>
-                                    <span class="rounded-full bg-brand-teal-soft px-2 py-1 text-xs font-bold text-brand-navy">Live</span>
-                                </div>
-                                <p class="mt-2 text-sm text-brand-muted">{{ number_format($brand['product_count']) }} services available</p>
-                                <p class="mt-5 text-sm font-bold text-brand-teal">Choose service →</p>
-                            </a>
-                        @else
-                            <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 opacity-80">
-                                <div class="flex items-start justify-between gap-3">
-                                    <h3 class="text-xl font-extrabold text-brand-navy">{{ $brand['label'] }}</h3>
-                                    <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-brand-muted">Coming soon</span>
-                                </div>
-                                <p class="mt-2 text-sm text-brand-muted">We are preparing price-checked services for this platform.</p>
+                <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">STEP 1 – Choose a platform</p>
+                <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    @forelse($brandOptions as $brand)
+                        <a href="{{ route('services.index', ['service' => 'smm_service', 'brand' => $brand['slug']]) }}" class="group relative overflow-hidden rounded-3xl p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-2xl" style="background: {{ $brand['gradient'] ?? $brand['color'] }}">
+                            <div class="flex items-start justify-between gap-4">
+                                <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 p-2 backdrop-blur"><img src="https://cdn.simpleicons.org/{{ $brand['logo'] }}/ffffff" alt="{{ $brand['label'] }} logo" class="h-8 w-8" loading="lazy"></span>
+                                <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">{{ number_format($brand['product_count']) }} services</span>
                             </div>
-                        @endif
-                    @endforeach
+                            <h2 class="mt-5 text-2xl font-extrabold">{{ $brand['label'] }}</h2>
+                            <p class="mt-2 text-sm leading-6 text-white/85">Choose from {{ number_format($brand['product_count']) }} available services.</p>
+                            <p class="mt-5 text-sm font-extrabold text-white">Choose service →</p>
+                        </a>
+                    @empty
+                        <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-brand-muted sm:col-span-2 lg:col-span-3 xl:col-span-4">No SMM platforms are available yet.</div>
+                    @endforelse
                 </div>
             </div>
         @elseif($brandComingSoon)
@@ -90,6 +82,14 @@
             </div>
         @elseif($selectedGroup)
             <div class="mt-8">
+                <div class="mb-5 flex items-center gap-4 rounded-2xl p-4 text-white shadow-sm" style="background: {{ $selectedBrand['gradient'] ?? $selectedBrand['color'] }}">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 p-2"><img src="https://cdn.simpleicons.org/{{ $selectedBrand['logo'] }}/ffffff" alt="{{ $selectedBrand['label'] }} logo" class="h-7 w-7" loading="lazy"></span>
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-white/80">Selected platform</p>
+                        <h2 class="text-xl font-extrabold">{{ $selectedBrand['label'] }}</h2>
+                    </div>
+                    <span class="ml-auto rounded-full bg-white/20 px-3 py-1 text-xs font-bold">{{ number_format($selectedBrand['product_count']) }} services</span>
+                </div>
                 <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Step 3 · Option</p>
@@ -132,12 +132,20 @@
             </div>
         @else
             <div class="mt-8">
+                <div class="mb-5 flex items-center gap-4 rounded-2xl p-4 text-white shadow-sm" style="background: {{ $selectedBrand['gradient'] ?? $selectedBrand['color'] }}">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 p-2"><img src="https://cdn.simpleicons.org/{{ $selectedBrand['logo'] }}/ffffff" alt="{{ $selectedBrand['label'] }} logo" class="h-7 w-7" loading="lazy"></span>
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-white/80">Selected platform</p>
+                        <h2 class="text-xl font-extrabold">{{ $selectedBrand['label'] }}</h2>
+                    </div>
+                    <span class="ml-auto rounded-full bg-white/20 px-3 py-1 text-xs font-bold">{{ number_format($selectedBrand['product_count']) }} services</span>
+                </div>
                 <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <a href="{{ route('services.index', ['service' => 'smm_service']) }}" class="text-sm font-bold text-brand-teal hover:text-brand-gold">← Choose a platform</a>
                         <p class="mt-2 text-sm font-bold uppercase tracking-wider text-brand-teal">Step 2</p>
-                        <h2 class="mt-1 text-2xl font-extrabold text-brand-navy">What do you need on {{ $selectedBrand['label'] }}?</h2>
-                        <p class="mt-1 text-sm text-brand-muted">Choose one service category. Services marked coming soon are not published until verified pricing is available.</p>
+                        <h2 class="mt-1 text-2xl font-extrabold text-brand-navy">Choose a service</h2>
+                        <p class="mt-1 text-sm text-brand-muted">Select the service you need on {{ $selectedBrand['label'] }}.</p>
                     </div>
                     <div class="flex gap-2 text-xs font-bold">
                         <span class="rounded-full bg-brand-teal-soft px-3 py-1 text-brand-navy">1 · {{ $selectedBrand['label'] }}</span>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Support\ServiceCatalogue;
 use App\Support\VirtualNumberCoverage;
 
@@ -36,6 +35,7 @@ class HomeController extends Controller
                 return [
                     'slug' => $slug,
                     'name' => ServiceCatalogue::brands()[$slug]['label'],
+                    'logo' => ServiceCatalogue::brands()[$slug]['logo'] ?? $slug,
                     'description' => $descriptions[$slug] ?? '',
                     'products_count' => $rows->count(),
                     'service_examples' => $serviceExamples,
@@ -50,25 +50,10 @@ class HomeController extends Controller
             ->pluck('product')
             ->values();
 
-        $stats = ['smm_products' => null, 'brands' => null, 'virtual_numbers' => null];
-        $statsAvailable = true;
-
-        try {
-            $stats = [
-                'smm_products' => $rowsByBrand->flatten(1)->count(),
-                'brands' => $brandStats->count(),
-                'virtual_numbers' => Product::active()->where('type', 'virtual_number')->count(),
-            ];
-        } catch (\Throwable) {
-            $statsAvailable = false;
-        }
-
         return view('pages.home', [
             'featuredProducts' => $featuredProducts,
             'virtualCountries' => VirtualNumberCoverage::featured(),
             'brandStats' => $brandStats,
-            'stats' => $stats,
-            'statsAvailable' => $statsAvailable,
         ]);
     }
 }

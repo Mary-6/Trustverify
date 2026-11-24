@@ -20,8 +20,6 @@ class DashboardController extends Controller
             'wallet' => $wallet,
             'recentOrders' => $user->orders()->with('product')->latest()->limit(6)->get(),
             'ordersCount' => $user->orders()->count(),
-            'openTickets' => $user->supportTickets()->whereNotIn('status', ['closed'])->count(),
-            'activeNumbers' => VirtualNumber::where('user_id', $user->id)->where('status', 'active')->count(),
             'referralCode' => $referrals->ensureCode($user),
             'referralUrl' => $referrals->referralUrl($user),
             'referredCount' => $user->referrals()->count(),

@@ -20,6 +20,7 @@ use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -29,6 +30,7 @@ Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [PageController::class, 'storeContact'])->middleware('throttle:6,1')->name('contact.store');
 Route::get('/services', [CatalogueController::class, 'index'])->name('services.index');
 Route::get('/services/{product}', [CatalogueController::class, 'show'])->name('services.show');
+Route::get('/verification', [VerificationController::class, 'index'])->name('verification.index');
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/api', [PageController::class, 'apiDocs'])->name('api.docs');
 Route::get('/support', [PageController::class, 'support'])->name('support');
@@ -43,6 +45,10 @@ Route::middleware(['auth'])->prefix('account')->name('dashboard.')->group(functi
     Route::get('/orders', [DashboardController::class, 'orders'])->name('orders.index');
     Route::get('/orders/{order}', [DashboardController::class, 'order'])->name('orders.show');
     Route::get('/numbers', [DashboardController::class, 'numbers'])->name('numbers.index');
+    Route::post('/verification/orders', [VerificationController::class, 'store'])->name('verification.orders.store');
+    Route::get('/verification/orders/{order}', [VerificationController::class, 'show'])->name('verification.orders.show');
+    Route::get('/verification/orders/{order}/status', [VerificationController::class, 'status'])->name('verification.orders.status')->middleware('throttle:30,1');
+    Route::post('/verification/orders/{order}/cancel', [VerificationController::class, 'cancel'])->name('verification.orders.cancel');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::post('/wallet/deposit', [WalletController::class, 'deposit'])->name('wallet.deposit');
     Route::get('/api-keys', [ApiKeyController::class, 'index'])->name('api-keys.index');

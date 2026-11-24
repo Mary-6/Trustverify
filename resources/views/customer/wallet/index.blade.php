@@ -3,15 +3,6 @@
 @section('title', 'Wallet | TrustVerifySMS')
 
 @section('content')
-@php
-    $comingSoonMethods = [
-        ['Orange Money', 'Mobile money option in preparation.'],
-        ['Visa/Mastercard', 'Card payments are not enabled yet.'],
-        ['PayPal', 'PayPal deposits are not enabled yet.'],
-        ['Other methods', 'Additional payment options are planned.'],
-    ];
-@endphp
-
 <div class="space-y-6">
     <div class="rounded-3xl bg-brand-navy p-8 text-white">
         <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Wallet</p>
@@ -47,21 +38,6 @@
                         @endforeach
                     </div>
                     @error('method')<p class="mt-1 text-sm text-brand-error">{{ $message }}</p>@enderror
-                </div>
-
-                <div class="rounded-2xl bg-brand-bg p-4">
-                    <p class="text-sm font-bold text-brand-navy">Coming soon</p>
-                    <div class="mt-3 grid gap-3">
-                        @foreach($comingSoonMethods as [$methodName, $description])
-                            <div class="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 opacity-80" aria-disabled="true">
-                                <div>
-                                    <p class="text-sm font-extrabold text-brand-navy">{{ $methodName }}</p>
-                                    <p class="mt-1 text-xs text-brand-muted">{{ $description }}</p>
-                                </div>
-                                <span class="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-brand-muted">Coming soon</span>
-                            </div>
-                        @endforeach
-                    </div>
                 </div>
 
                 <div>

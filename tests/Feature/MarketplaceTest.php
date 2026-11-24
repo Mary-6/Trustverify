@@ -51,7 +51,8 @@ class MarketplaceTest extends TestCase
 
         $this->get('/services?service=smm_service&brand=instagram')
             ->assertOk()
-            ->assertSee('What do you need on Instagram')
+            ->assertSee('Choose a service')
+            ->assertSee('Select the service you need on Instagram')
             ->assertSee('Followers')
             ->assertDontSee('Instagram Followers Test');
 
