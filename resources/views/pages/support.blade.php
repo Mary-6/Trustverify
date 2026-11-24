@@ -31,6 +31,7 @@
         </div>
 
         <aside class="space-y-6">
+            @php($supportEmail = app(\App\Services\SettingsService::class)->get('general.support_email', 'support@trustverifysms.com'))
             <div class="rounded-3xl bg-brand-navy p-7 text-white">
                 <h2 class="text-xl font-extrabold">Before contacting support</h2>
                 <ul class="mt-4 space-y-3 text-sm text-slate-300">
@@ -38,6 +39,11 @@
                     <li class="flex gap-3"><span class="text-brand-teal">✓</span> For wallet deposits, include the payment reference.</li>
                     <li class="flex gap-3"><span class="text-brand-teal">✓</span> For SMS issues, confirm the virtual number is still active.</li>
                 </ul>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                <h2 class="text-xl font-extrabold text-brand-navy">Company email</h2>
+                <p class="mt-3 text-sm text-brand-muted">For account, billing and order questions, email <a class="font-bold text-brand-teal hover:text-brand-gold" href="mailto:{{ $supportEmail }}">{{ $supportEmail }}</a>.</p>
+                <p class="mt-2 text-xs text-brand-muted">For faster help, open a ticket and include your order or payment reference.</p>
             </div>
             <div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
                 <h2 class="text-xl font-extrabold text-brand-navy">Account safety</h2>

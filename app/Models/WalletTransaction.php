@@ -11,6 +11,7 @@ class WalletTransaction extends Model
     public const TYPE_PURCHASE = 'purchase';
     public const TYPE_REFUND = 'refund';
     public const TYPE_ADJUSTMENT = 'adjustment';
+    public const TYPE_REFERRAL = 'referral';
 
     protected $fillable = [
         'wallet_id',

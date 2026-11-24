@@ -170,3 +170,46 @@ Artisan::command('admin:create {--email= : Admin email address} {--name= : Admin
 
     return 0;
 })->purpose('Create or update an admin user');
+
+Artisan::command('site:bootstrap {--skip-migrate : Skip database migrations}', function () {
+    if (! $this->option('skip-migrate')) {
+        Artisan::call('migrate', ['--force' => true]);
+        $this->info('Migrations complete.');
+    }
+
+    $activeSmm = Product::active()->where('type', 'smm_service')->count();
+    $jap = app(JustAnotherPanelCatalogImporter::class);
+
+    if ($activeSmm === 0) {
+        $this->info('No active SMM products found; importing JustAnotherPanel catalogue.');
+        $import = $jap->import([
+            'brands' => ['instagram', 'tiktok', 'facebook', 'youtube', 'telegram', 'whatsapp'],
+            'types' => 'Default',
+            'markup' => 10,
+            'usd_xaf_rate' => 597.85,
+            'status' => 'active',
+        ]);
+        $this->info('JustAnotherPanel import: '.$import['imported'].' products.');
+    } else {
+        $this->info('Active SMM products already exist ('.$activeSmm.'); skipping JustAnotherPanel import.');
+    }
+
+    $textVerified = app(TextVerifiedCatalogImporter::class)->sync([
+        'markup' => 10,
+        'usd_xaf_rate' => 597.85,
+        'status' => 'active',
+    ]);
+    $this->info('TextVerified sync: '.$textVerified['imported'].' products.');
+
+    $sync = $jap->sync([]);
+    if (isset($sync['error'])) {
+        $this->warn('JustAnotherPanel catalog is unavailable; sync skipped.');
+    } else {
+        $this->info('JustAnotherPanel sync archived '.$sync['archived'].' products.');
+    }
+
+    Artisan::call('catalogue:sync-smm-caps');
+    $this->info('Site bootstrap complete.');
+
+    return 0;
+})->purpose('Prepare the live site: migrate, import missing catalogue products and sync suppliers');

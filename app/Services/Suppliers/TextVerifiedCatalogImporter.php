@@ -32,7 +32,8 @@ class TextVerifiedCatalogImporter
         }
 
         foreach ($offers as $offer) {
-            $supplierCost = number_format(round(((float) $offer['supplier_price_usd']) * $usdXafRate, 2), 2, '.', '');
+            $supplierCost = $this->convertUsd((float) $offer['supplier_price_usd'], 1, $usdXafRate);
+            $price = $this->convertUsd((float) $offer['supplier_price_usd'], 1 + ($markup / 100), $usdXafRate);
 
             if ($dryRun) {
                 $imported++;
@@ -52,7 +53,7 @@ class TextVerifiedCatalogImporter
                     'summary' => 'US mobile number for '.$offer['name'].' (SMS).',
                     'description' => 'Receive a US mobile number for '.$offer['name'].'. One SMS verification per order. Codes are delivered to your order when received. US numbers only.',
                     'terms' => 'Verification codes are time-sensitive. Do not share codes with anyone. This product provides US numbers only.',
-                    'price' => $offer['price'],
+                    'price' => $price,
                     'currency' => 'XAF',
                     'supplier_cost' => $supplierCost,
                     'supplier' => 'textverified',
@@ -96,11 +97,20 @@ class TextVerifiedCatalogImporter
     private function offers(): array
     {
         return [
-            ['name' => 'WhatsApp US SMS Verification', 'service_name' => 'whatsapp', 'supplier_price_usd' => 1.50, 'price' => '986.00'],
-            ['name' => 'Facebook US SMS Verification', 'service_name' => 'facebookv', 'supplier_price_usd' => 0.75, 'price' => '493.00'],
-            ['name' => 'TikTok US SMS Verification', 'service_name' => 'tiktok', 'supplier_price_usd' => 0.75, 'price' => '493.00'],
-            ['name' => 'Instagram US SMS Verification', 'service_name' => 'instagram', 'supplier_price_usd' => 0.50, 'price' => '329.00'],
-            ['name' => 'Snapchat US SMS Verification', 'service_name' => 'snapchatv', 'supplier_price_usd' => 0.25, 'price' => '164.00'],
+            ['name' => 'WhatsApp US SMS Verification', 'service_name' => 'whatsapp', 'supplier_price_usd' => 1.50],
+            ['name' => 'Facebook US SMS Verification', 'service_name' => 'facebookv', 'supplier_price_usd' => 0.75],
+            ['name' => 'TikTok US SMS Verification', 'service_name' => 'tiktok', 'supplier_price_usd' => 0.75],
+            ['name' => 'Instagram US SMS Verification', 'service_name' => 'instagram', 'supplier_price_usd' => 0.50],
+            ['name' => 'Snapchat US SMS Verification', 'service_name' => 'snapchatv', 'supplier_price_usd' => 0.25],
         ];
+    }
+
+    private function convertUsd(float $usd, float $multiplier, float $usdXafRate): string
+    {
+        $usd = number_format($usd, 6, '.', '');
+        $multiplier = number_format($multiplier, 6, '.', '');
+        $usdXaf = number_format($usdXafRate, 6, '.', '');
+
+        return bcadd(bcmul(bcmul($usd, $multiplier, 6), $usdXaf, 6), '0', 2);
     }
 }

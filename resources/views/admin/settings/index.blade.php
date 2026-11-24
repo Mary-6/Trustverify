@@ -32,8 +32,17 @@
             <h2 class="font-extrabold text-brand-navy">Payments</h2>
             <div class="mt-4">
                 <label class="text-sm font-bold text-brand-text">Enabled methods (comma separated)</label>
-                <input name="payment_methods" value="{{ old('payment_methods', $settings['payments']['methods']) }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3" placeholder="mtn_momo, orange_money, card">
-                <p class="mt-2 text-xs text-brand-muted">Gateway credentials remain environment variables; this controls which methods customers can request.</p>
+                <input name="payment_methods" value="{{ old('payment_methods', $settings['payments']['methods']) }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3" placeholder="mtn_momo">
+                <p class="mt-2 text-xs text-brand-muted">Only <code>mtn_momo</code> is active while other methods are coming soon. Gateway credentials remain environment variables.</p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+            <h2 class="font-extrabold text-brand-navy">Referrals</h2>
+            <div class="mt-4">
+                <label class="text-sm font-bold text-brand-text">First-deposit reward (XAF)</label>
+                <input name="referral_reward_amount" type="number" step="1" min="0" value="{{ old('referral_reward_amount', $settings['referrals']['reward_amount']) }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3">
+                <p class="mt-2 text-xs text-brand-muted">Set to 0 to disable automatic referral rewards. Rewards are credited once per referred customer after their first successful wallet deposit.</p>
             </div>
         </div>
 

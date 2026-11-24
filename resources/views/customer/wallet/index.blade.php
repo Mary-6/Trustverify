@@ -3,17 +3,27 @@
 @section('title', 'Wallet | TrustVerifySMS')
 
 @section('content')
+@php
+    $comingSoonMethods = [
+        ['Orange Money', 'Mobile money option in preparation.'],
+        ['Visa/Mastercard', 'Card payments are not enabled yet.'],
+        ['PayPal', 'PayPal deposits are not enabled yet.'],
+        ['Other methods', 'Additional payment options are planned.'],
+    ];
+@endphp
+
 <div class="space-y-6">
     <div class="rounded-3xl bg-brand-navy p-8 text-white">
         <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Wallet</p>
         <h1 class="mt-2 text-3xl font-extrabold">{{ number_format((float) $wallet->balance, 0) }} {{ $wallet->currency }}</h1>
-        <p class="mt-2 text-slate-300">Available balance for orders and services.</p>
+        <p class="mt-2 text-slate-300">Available balance for SMM services and verification products.</p>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-[380px_1fr]">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+    <div class="grid gap-6 lg:grid-cols-[420px_1fr]">
+        <div id="add-funds" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-xl font-extrabold text-brand-navy">Add funds</h2>
-            <p class="mt-2 text-sm text-brand-muted">Submit a deposit request. Wallet credit is applied only after verification.</p>
+            <p class="mt-2 text-sm text-brand-muted">Submit a deposit request. Wallet credit is applied only after payment verification.</p>
+
             <form method="POST" action="{{ route('dashboard.wallet.deposit') }}" class="mt-5 space-y-4">
                 @csrf
                 <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $depositKey) }}">
@@ -22,18 +32,41 @@
                     <input id="amount" name="amount" type="number" min="100" step="1" value="{{ old('amount') }}" required class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3">
                     @error('amount')<p class="mt-1 text-sm text-brand-error">{{ $message }}</p>@enderror
                 </div>
+
                 <div>
-                    <label class="text-sm font-bold text-brand-text" for="method">Payment method</label>
-                    <select id="method" name="method" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3">
+                    <p class="text-sm font-bold text-brand-text">Payment method</p>
+                    <div class="mt-2 space-y-3">
                         @foreach($paymentMethods as $method)
-                            <option value="{{ $method['value'] }}" @selected(old('method') === $method['value'])>{{ $method['label'] }}</option>
+                            <label class="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-brand-teal/40 bg-brand-teal-soft p-4">
+                                <span>
+                                    <span class="block font-extrabold text-brand-navy">{{ $method['label'] }}</span>
+                                    <span class="mt-1 block text-xs font-bold text-brand-teal">Available</span>
+                                </span>
+                                <input type="radio" name="method" value="{{ $method['value'] }}" class="h-5 w-5 accent-brand-teal" @checked(old('method', 'mtn_momo') === $method['value']) required>
+                            </label>
                         @endforeach
-                    </select>
+                    </div>
                     @error('method')<p class="mt-1 text-sm text-brand-error">{{ $message }}</p>@enderror
                 </div>
+
+                <div class="rounded-2xl bg-brand-bg p-4">
+                    <p class="text-sm font-bold text-brand-navy">Coming soon</p>
+                    <div class="mt-3 grid gap-3">
+                        @foreach($comingSoonMethods as [$methodName, $description])
+                            <div class="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 opacity-80" aria-disabled="true">
+                                <div>
+                                    <p class="text-sm font-extrabold text-brand-navy">{{ $methodName }}</p>
+                                    <p class="mt-1 text-xs text-brand-muted">{{ $description }}</p>
+                                </div>
+                                <span class="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-brand-muted">Coming soon</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div>
                     <label class="text-sm font-bold text-brand-text" for="phone">Phone / account reference</label>
-                    <input id="phone" name="phone" value="{{ old('phone') }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3" placeholder="Optional">
+                    <input id="phone" name="phone" value="{{ old('phone') }}" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3" placeholder="MTN MoMo number">
                 </div>
                 <div>
                     <label class="text-sm font-bold text-brand-text" for="reference_note">Note</label>
@@ -55,7 +88,7 @@
                             <tbody>
                                 @foreach($transactions as $tx)
                                     <tr class="border-t border-slate-100">
-                                        <td class="py-3 font-semibold">{{ $tx->type }}</td>
+                                        <td class="py-3 font-semibold">{{ str_replace('_', ' ', $tx->type) }}</td>
                                         <td class="py-3">{{ number_format((float) $tx->amount, 0) }} {{ $tx->currency }}</td>
                                         <td class="py-3">{{ number_format((float) $tx->balance_after, 0) }}</td>
                                         <td class="py-3 text-brand-muted">{{ $tx->reference ?: '—' }}</td>

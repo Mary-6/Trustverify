@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Services\Payments\FapshiGateway;
-use App\Services\SettingsService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -111,7 +110,7 @@ class WalletController extends Controller
 
     private function enabledPaymentMethods(): array
     {
-        return array_values((array) app(SettingsService::class)->get('payments.methods', ['mtn_momo', 'orange_money', 'card']));
+        return ['mtn_momo'];
     }
 
     private function paymentMethodOptions(): array
@@ -122,6 +121,8 @@ class WalletController extends Controller
             'card' => 'International card',
             'bank_transfer' => 'Bank transfer',
             'crypto' => 'Crypto',
+            'paypal' => 'PayPal',
+            'other' => 'Other payment method',
         ];
 
         return collect($this->enabledPaymentMethods())

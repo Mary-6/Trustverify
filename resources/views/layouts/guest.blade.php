@@ -23,17 +23,31 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
+    <body class="bg-brand-bg font-sans text-brand-text antialiased">
+        <script>
+        (function () {
+            var theme = localStorage.getItem('theme');
+            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+        </script>
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-brand-bg">
             <div>
                 <a href="/" wire:navigate>
                     <img src="/images/logo-horizontal.svg" alt="TrustVerifySMS" class="h-12 w-auto">
                 </a>
             </div>
 
+            <div class="mt-4 flex gap-3 text-sm font-bold">
+                <a href="{{ request()->fullUrlWithQuery(['lang' => 'en']) }}" class="rounded-lg px-3 py-1 {{ app()->getLocale() === 'en' ? 'bg-brand-navy text-white' : 'text-brand-muted hover:text-brand-navy' }}">EN</a>
+                <a href="{{ request()->fullUrlWithQuery(['lang' => 'fr']) }}" class="rounded-lg px-3 py-1 {{ app()->getLocale() === 'fr' ? 'bg-brand-navy text-white' : 'text-brand-muted hover:text-brand-navy' }}">FR</a>
+            </div>
+
             <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 {{ $slot }}
             </div>
         </div>
+        @include('components.theme-toggle')
     </body>
 </html>

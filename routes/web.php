@@ -22,6 +22,9 @@ use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/faq', [PageController::class, 'faq'])->name('faq');
+Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::get('/services', [CatalogueController::class, 'index'])->name('services.index');
 Route::get('/services/{product}', [CatalogueController::class, 'show'])->name('services.show');
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');

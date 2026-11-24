@@ -68,4 +68,10 @@ new #[Layout('layouts.guest')] class extends Component
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-5 text-center">
+        <a href="{{ route('register') }}" wire:navigate class="text-sm font-semibold text-brand-teal hover:text-brand-navy">
+            New to TrustVerifySMS? Create account
+        </a>
+    </div>
 </div>

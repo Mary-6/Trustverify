@@ -11,7 +11,7 @@
     </div>
 
     <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Revenue</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format((float) $stats['revenue'], 0) }}</p></div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Revenue ({{ $stats['currency'] }})</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format((float) $stats['revenue'], 0) }}</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Orders</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['orders']) }}</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Pending orders</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['pending_orders']) }}</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5"><p class="text-sm text-brand-muted">Active products</p><p class="mt-2 text-2xl font-extrabold text-brand-navy">{{ number_format($stats['active_products']) }}</p></div>

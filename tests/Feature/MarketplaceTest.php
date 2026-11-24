@@ -24,7 +24,7 @@ class MarketplaceTest extends TestCase
         $this->get('/support')->assertOk();
     }
 
-    public function test_services_page_marks_unavailable_services_coming_soon(): void
+    public function test_services_page_hides_unavailable_services(): void
     {
         $instagram = Category::create([
             'name' => 'Instagram',
@@ -70,7 +70,10 @@ class MarketplaceTest extends TestCase
 
         $this->get('/services?service=virtual_number')
             ->assertOk()
-            ->assertSee('This service is not available yet');
+            ->assertSee('SMM Services')
+            ->assertSee('Choose a platform')
+            ->assertDontSee('This service is not available yet')
+            ->assertDontSee('Coming soon');
 
         $this->get('/services?type=esim')
             ->assertOk()
@@ -80,7 +83,7 @@ class MarketplaceTest extends TestCase
         $this->get('/services')
             ->assertOk()
             ->assertSee('SMM Services')
-            ->assertSee('Virtual Numbers')
+            ->assertDontSee('value="virtual_number"', false)
             ->assertDontSee('SEO Services')
             ->assertDontSee('Social Media Accounts')
             ->assertDontSee('Advertising Accounts')

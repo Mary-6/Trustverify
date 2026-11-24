@@ -102,12 +102,16 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
 
         $verification = $response->json() ?? [];
         $state = (string) ($verification['state'] ?? '');
+        $delivery = array_merge(
+            $this->delivery($verification, $verification['serviceName'] ?? null),
+            $this->latestSms($verification, $order->id)
+        );
 
         return SupplierResult::success($order->supplier_reference, [
             'status' => $this->mapState($state),
             'supplier_status' => $state,
             'state' => $state,
-            'delivery' => $this->delivery($verification, $verification['serviceName'] ?? null),
+            'delivery' => $delivery,
         ], 'TextVerified status retrieved.');
     }
 
@@ -196,7 +200,9 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
             'action' => $action,
             'endpoint' => $endpoint,
             'request_payload' => $payload + $query,
-            'response_payload' => $response->json() ?? ['raw' => substr($response->body(), 0, 4000)],
+            'response_payload' => $action === 'verification.sms'
+                ? ['redacted' => true]
+                : ($response->json() ?? ['raw' => substr($response->body(), 0, 4000)]),
             'http_status' => $response->status(),
             'status' => $response->successful() ? 'success' : 'failed',
             'error_message' => $response->successful() ? null : substr($response->body(), 0, 1000),
@@ -274,6 +280,48 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
             str_contains($state, 'timedout'), str_contains($state, 'timed_out'), str_contains($state, 'refunded'), str_contains($state, 'failed') => 'failed',
             default => 'processing',
         };
+    }
+
+    private function latestSms(array $verification, int $orderId): array
+    {
+        $number = $verification['number'] ?? null;
+
+        if (! $number) {
+            return [];
+        }
+
+        $response = $this->request('GET', '/api/pub/v2/sms', [], [
+            'to' => (string) $number,
+            'reservationType' => 'verification',
+        ], $orderId, 'verification.sms');
+
+        if (! $response->successful()) {
+            return [];
+        }
+
+        $messages = $response->json('data') ?? [];
+        if (! is_array($messages)) {
+            return [];
+        }
+
+        usort($messages, fn ($a, $b) => strtotime((string) ($b['createdAt'] ?? '')) <=> strtotime((string) ($a['createdAt'] ?? '')));
+
+        foreach ($messages as $message) {
+            $code = $message['parsedCode'] ?? null;
+            $content = ($message['encrypted'] ?? false) ? null : ($message['smsContent'] ?? null);
+
+            if ($code || $content) {
+                return array_filter([
+                    'sms_id' => $message['id'] ?? null,
+                    'sms_code' => $code,
+                    'sms_content' => $content,
+                    'sms_from' => $message['from'] ?? null,
+                    'sms_received_at' => $message['createdAt'] ?? null,
+                ], fn ($value) => $value !== null && $value !== '');
+            }
+        }
+
+        return [];
     }
 
     private function delivery(array $verification, mixed $serviceName): array

@@ -22,14 +22,19 @@ class CatalogueController extends Controller
             ? (string) $request->input('service')
             : ($request->filled('type') ? (string) $request->input('type') : 'smm_service');
 
+        $availableServiceTypes = array_filter($serviceTypes, fn ($slug) => Product::active()->where('type', $slug)->exists(), ARRAY_FILTER_USE_KEY);
+
         $selectedService = array_key_exists($requestedService, $serviceTypes) ? $requestedService : 'smm_service';
+        if (! array_key_exists($selectedService, $availableServiceTypes)) {
+            $selectedService = array_key_first($availableServiceTypes) ?? 'smm_service';
+        }
 
         $serviceOptions = [];
-        foreach ($serviceTypes as $slug => $label) {
+        foreach ($availableServiceTypes as $slug => $label) {
             $serviceOptions[] = [
                 'slug' => $slug,
                 'label' => $label,
-                'available' => Product::active()->where('type', $slug)->exists(),
+                'available' => true,
             ];
         }
 
@@ -61,7 +66,10 @@ class CatalogueController extends Controller
     {
         $brandSummaries = [];
         foreach (ServiceCatalogue::brands() as $slug => $brand) {
-            $brandSummaries[$slug] = ServiceCatalogue::summaries($slug);
+            $brandSummaries[$slug] = array_filter(
+                ServiceCatalogue::summaries($slug),
+                fn ($summary) => (bool) ($summary['available'] ?? false)
+            );
         }
 
         $brandOptions = [];
@@ -75,6 +83,8 @@ class CatalogueController extends Controller
                 'product_count' => $productCount,
             ];
         }
+
+        $brandOptions = array_values(array_filter($brandOptions, fn ($brand) => $brand['available']));
 
         $selectedBrandSlug = $request->filled('brand') ? (string) $request->input('brand') : null;
 
@@ -179,7 +189,7 @@ class CatalogueController extends Controller
             'serviceOptions' => $serviceOptions,
             'selectedService' => $selectedService,
             'selectedServiceLabel' => $selectedServiceLabel,
-            'comingSoon' => $products->total() === 0,
+            'comingSoon' => false,
             'brandOptions' => [],
             'selectedBrand' => null,
             'selectedBrandSlug' => null,

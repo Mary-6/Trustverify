@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Webhooks;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Services\Payments\FapshiGateway;
+use App\Services\ReferralService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class FapshiWebhookController extends Controller
 {
-    public function handle(Request $request, FapshiGateway $fapshi, WalletService $wallets)
+    public function handle(Request $request, FapshiGateway $fapshi, WalletService $wallets, ReferralService $referrals)
     {
         $secret = (string) config('fapshi.webhook_secret', '');
         $provided = (string) $request->header('x-wh-secret', '');
@@ -60,7 +61,7 @@ class FapshiWebhookController extends Controller
             }
 
             if ($payment->status === Payment::STATUS_PENDING) {
-                DB::transaction(function () use ($payment, $wallets, $transId, $verified) {
+                DB::transaction(function () use ($payment, $wallets, $referrals, $transId, $verified) {
                     $payment->forceFill([
                         'status' => Payment::STATUS_SUCCESS,
                         'verified_at' => now(),
@@ -73,6 +74,8 @@ class FapshiWebhookController extends Controller
                         'gateway' => 'fapshi',
                         'metadata' => ['payment_id' => $payment->id, 'trans_id' => $transId],
                     ]);
+
+                    $referrals->rewardFirstDeposit($payment->user);
                 });
             }
 

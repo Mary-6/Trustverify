@@ -22,7 +22,10 @@ class SettingController extends Controller
                     'global_markup_fixed' => $settings->get('pricing.global_markup_fixed', 0),
                 ],
                 'payments' => [
-                    'methods' => implode(', ', (array) $settings->get('payments.methods', ['mtn_momo', 'orange_money', 'card'])),
+                    'methods' => implode(', ', (array) $settings->get('payments.methods', ['mtn_momo'])),
+                ],
+                'referrals' => [
+                    'reward_amount' => $settings->get('referrals.reward_amount', 0),
                 ],
                 'supplier' => [
                     'manual_fulfillment_enabled' => $settings->get('supplier.manual_fulfillment_enabled', true),
@@ -41,6 +44,7 @@ class SettingController extends Controller
             'global_markup_percent' => ['nullable', 'numeric', 'min:0', 'max:1000'],
             'global_markup_fixed' => ['nullable', 'numeric', 'min:0'],
             'payment_methods' => ['nullable', 'string', 'max:500'],
+            'referral_reward_amount' => ['nullable', 'numeric', 'min:0'],
             'manual_fulfillment_enabled' => ['nullable', 'boolean'],
             'faussms_enabled' => ['nullable', 'boolean'],
         ]);
@@ -53,6 +57,7 @@ class SettingController extends Controller
 
         $methods = array_values(array_filter(array_map('trim', explode(',', (string) ($data['payment_methods'] ?? '')))));
         $settings->set('payments.methods', $methods, 'json', 'payments');
+        $settings->set('referrals.reward_amount', $data['referral_reward_amount'] ?? 0, 'integer', 'referrals');
         $settings->set('supplier.manual_fulfillment_enabled', $request->boolean('manual_fulfillment_enabled'), 'boolean', 'supplier');
         $settings->set('supplier.faussms_enabled', $request->boolean('faussms_enabled'), 'boolean', 'supplier');
 

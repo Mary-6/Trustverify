@@ -41,6 +41,18 @@ class SupplierAdaptersTest extends TestCase
                 return Http::response(['token' => 'tv-token', 'expiresAt' => now()->addHour()->toISOString()]);
             }
 
+            if (str_contains($url, '/api/pub/v2/sms')) {
+                return Http::response(['data' => [[
+                    'id' => 'sms_1',
+                    'to' => '+15551234567',
+                    'from' => '+15550000000',
+                    'createdAt' => '2026-01-01T00:01:00Z',
+                    'encrypted' => false,
+                    'smsContent' => 'Your verification code is 123456',
+                    'parsedCode' => '123456',
+                ]], 'hasNext' => false, 'hasPrevious' => false, 'count' => 1]);
+            }
+
             if ($request->method() === 'GET' && str_contains($url, '/api/pub/v2/verifications/')) {
                 return Http::response([
                     'id' => 'ver_123',
@@ -80,6 +92,8 @@ class SupplierAdaptersTest extends TestCase
         $this->assertSame('completed', $status->data['status']);
         $this->assertSame('verificationCompleted', $status->data['supplier_status']);
         $this->assertSame('+15551234567', $status->data['delivery']['number'] ?? null);
+        $this->assertSame('123456', $status->data['delivery']['sms_code'] ?? null);
+        $this->assertTrue(SupplierLog::where('action', 'verification.sms')->exists());
     }
 
     public function test_textverified_does_not_support_non_verification_products(): void

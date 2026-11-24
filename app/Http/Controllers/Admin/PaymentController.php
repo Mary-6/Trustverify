@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Services\Payments\FapshiGateway;
+use App\Services\ReferralService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,7 @@ class PaymentController extends Controller
         return view('admin.payments.index', compact('payments'));
     }
 
-    public function verify(Request $request, Payment $payment, WalletService $wallets, FapshiGateway $fapshi)
+    public function verify(Request $request, Payment $payment, WalletService $wallets, FapshiGateway $fapshi, ReferralService $referrals)
     {
         abort_unless($payment->status === Payment::STATUS_PENDING, 422, 'Only pending payments can be verified.');
 
@@ -45,6 +46,8 @@ class PaymentController extends Controller
             'metadata' => ['payment_id' => $payment->id],
             'created_by' => $request->user()->id,
         ]);
+
+        $referrals->rewardFirstDeposit($payment->user);
 
         return back()->with('status', 'Payment verified and wallet credited.');
     }

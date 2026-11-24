@@ -116,8 +116,13 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
     public function catalog(): array
     {
         $response = $this->call('services', [], null, 'catalog');
+        $data = $response->json();
 
-        return $response->successful() ? ($response->json() ?? []) : [];
+        if (! $response->successful() || ! is_array($data) || isset($data['error'])) {
+            return [];
+        }
+
+        return array_values(array_filter($data, fn ($service) => is_array($service) && isset($service['service'])));
     }
 
     private function call(string $action, array $params = [], ?int $orderId = null, string $logAction = 'request')
