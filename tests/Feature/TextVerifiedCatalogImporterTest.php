@@ -79,6 +79,38 @@ class TextVerifiedCatalogImporterTest extends TestCase
         $this->assertSame(0, Product::count());
     }
 
+    public function test_sync_preserves_admin_disabled_products_and_prices(): void
+    {
+        $this->configureTextVerified();
+        $this->fakeTextVerified();
+
+        $disabled = Product::create([
+            'name' => 'WhatsApp US SMS Verification',
+            'type' => 'virtual_number',
+            'price' => 123.45,
+            'currency' => 'XAF',
+            'supplier' => 'textverified',
+            'supplier_adapter' => 'textverified',
+            'supplier_product_id' => 'whatsapp',
+            'status' => 'draft',
+            'is_active' => false,
+            'meta' => ['admin_disabled' => true],
+            'slug' => 'whatsapp-us-sms-verification-disabled',
+        ]);
+
+        app(TextVerifiedCatalogImporter::class)->sync([
+            'markup' => 10,
+            'usd_xaf_rate' => 600,
+            'status' => 'active',
+        ]);
+
+        $disabled->refresh();
+        $this->assertFalse($disabled->is_active);
+        $this->assertSame('draft', $disabled->status);
+        $this->assertSame(123.45, (float) $disabled->price);
+        $this->assertTrue((bool) ($disabled->meta['admin_disabled'] ?? false));
+    }
+
     private function configureTextVerified(): void
     {
         config()->set('textverified.enabled', true);

@@ -50,19 +50,17 @@
         @if($awaitingBrand)
             <div class="mt-8">
                 <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">STEP 1 – Choose a platform</p>
-                <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div class="mt-5 flex flex-wrap gap-3">
                     @forelse($brandOptions as $brand)
-                        <a href="{{ route('services.index', ['service' => 'smm_service', 'brand' => $brand['slug']]) }}" class="group relative overflow-hidden rounded-3xl p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-2xl" style="background: {{ $brand['gradient'] ?? $brand['color'] }}">
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 p-2 backdrop-blur"><img src="https://cdn.simpleicons.org/{{ $brand['logo'] }}/ffffff" alt="{{ $brand['label'] }} logo" class="h-8 w-8" loading="lazy"></span>
-                                <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">{{ number_format($brand['product_count']) }} services</span>
-                            </div>
-                            <h2 class="mt-5 text-2xl font-extrabold">{{ $brand['label'] }}</h2>
-                            <p class="mt-2 text-sm leading-6 text-white/85">Choose from {{ number_format($brand['product_count']) }} available services.</p>
-                            <p class="mt-5 text-sm font-extrabold text-white">Choose service →</p>
+                        <a href="{{ route('services.index', ['service' => 'smm_service', 'brand' => $brand['slug']]) }}" class="group inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-teal/60 hover:shadow-md">
+                            <span class="flex h-9 w-9 items-center justify-center rounded-xl" style="background: {{ $brand['color'] }}1f"><img src="https://cdn.simpleicons.org/{{ $brand['logo'] }}/{{ ltrim($brand['color'] ?? '#0F172A', '#') }}" alt="{{ $brand['label'] }} logo" class="h-5 w-5" loading="lazy"></span>
+                            <span>
+                                <span class="block text-sm font-extrabold text-brand-navy group-hover:text-brand-teal">{{ $brand['label'] }}</span>
+                                <span class="block text-xs font-semibold text-brand-muted">{{ number_format($brand['product_count']) }} services</span>
+                            </span>
                         </a>
                     @empty
-                        <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-brand-muted sm:col-span-2 lg:col-span-3 xl:col-span-4">No SMM platforms are available yet.</div>
+                        <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-brand-muted">No SMM platforms are available yet.</div>
                     @endforelse
                 </div>
             </div>

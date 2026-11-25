@@ -58,6 +58,10 @@ class TextVerifiedCatalogImporter
                 ->where('supplier_product_id', $offer['service_name'])
                 ->first();
 
+            $existingMeta = $existing?->meta ?? [];
+            $adminDisabled = (bool) ($existingMeta['admin_disabled'] ?? false);
+            $preserveDisabled = $adminDisabled || ($existing !== null && $existing->status !== 'archived' && (! $existing->is_active || $existing->status !== 'active'));
+
             Product::updateOrCreate(
                 [
                     'supplier_adapter' => 'textverified',
@@ -91,9 +95,10 @@ class TextVerifiedCatalogImporter
                         'usd_xaf_rate' => $usdXafRate,
                         'markup_percent' => $markup,
                         'supplier_price_usd' => $supplierPriceUsd,
+                        'admin_disabled' => $adminDisabled,
                     ],
-                    'status' => $status,
-                    'is_active' => $status === 'active',
+                    'status' => $preserveDisabled ? ($existing->status ?: 'draft') : $status,
+                    'is_active' => ! $preserveDisabled,
                     'is_featured' => false,
                     'sort_order' => 0,
                     'stock_quantity' => null,

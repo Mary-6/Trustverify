@@ -39,6 +39,7 @@
                     ['route' => 'admin.dashboard', 'label' => 'Dashboard', 'icon' => 'M3 13h2v6H3zM8 10h2v9H8zM13 5h2v14h-2zM18 8h2v11h-2z'],
                     ['route' => 'admin.orders.index', 'label' => 'Orders', 'icon' => 'M6 6h15l-1.5 9h-12L5 3H2M9 20a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM18 20a1.5 1.5 0 100-3 1.5 1.5 0 000 3z'],
                     ['route' => 'admin.products.index', 'label' => 'Products', 'icon' => 'M21 8.25l-9-5.25L3 8.25v7.5l9 5.25 9-5.25v-7.5zM3.3 8.8l9 5.2 9-5.2M12 21v-7'],
+                    ['route' => 'admin.service-management.index', 'label' => 'Service management', 'icon' => 'M4 6h16M4 12h16M4 18h10'],
                     ['route' => 'admin.payments.index', 'label' => 'Payments', 'icon' => 'M3 6h18v13H3zM3 10h18M7 15h4'],
                     ['route' => 'admin.customers.index', 'label' => 'Customers', 'icon' => 'M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5'],
                     ['route' => 'admin.tickets.index', 'label' => 'Tickets', 'icon' => 'M8 10h8M8 14h5M21 12a8 8 0 01-11.6 7.1L4 20l1-4.4A8 8 0 1121 12z'],
@@ -102,6 +103,7 @@
                 <a href="{{ route('admin.dashboard') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.dashboard') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Dashboard</a>
                 <a href="{{ route('admin.orders.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.orders.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Orders</a>
                 <a href="{{ route('admin.products.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.products.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Products</a>
+                <a href="{{ route('admin.service-management.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.service-management.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Service management</a>
                 <a href="{{ route('admin.payments.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.payments.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Payments</a>
                 <a href="{{ route('admin.tickets.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.tickets.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Tickets</a>
                 <a href="{{ route('admin.settings.index') }}" class="whitespace-nowrap rounded-lg px-3 py-2 {{ request()->routeIs('admin.settings.*') ? 'bg-brand-teal-soft text-brand-navy' : 'text-brand-muted' }}">Settings</a>

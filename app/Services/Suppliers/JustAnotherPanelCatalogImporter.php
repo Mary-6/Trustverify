@@ -106,6 +106,10 @@ class JustAnotherPanelCatalogImporter
                 ->where('supplier_product_id', (string) $serviceId)
                 ->first();
 
+            $existingMeta = $existing?->meta ?? [];
+            $adminDisabled = (bool) ($existingMeta['admin_disabled'] ?? false);
+            $preserveDisabled = $adminDisabled || ($existing !== null && $existing->status !== 'archived' && (! $existing->is_active || $existing->status !== 'active'));
+
             Product::updateOrCreate(
                 [
                     'supplier_adapter' => 'justanotherpanel',
@@ -135,9 +139,10 @@ class JustAnotherPanelCatalogImporter
                         'dripfeed' => (bool) ($service['dripfeed'] ?? false),
                         'refill' => (bool) ($service['refill'] ?? false),
                         'cancel' => (bool) ($service['cancel'] ?? false),
+                        'admin_disabled' => $adminDisabled,
                     ],
-                    'status' => $status,
-                    'is_active' => true,
+                    'status' => $preserveDisabled ? ($existing->status ?: 'draft') : $status,
+                    'is_active' => ! $preserveDisabled,
                     'is_featured' => false,
                     'sort_order' => 0,
                     'stock_quantity' => null,

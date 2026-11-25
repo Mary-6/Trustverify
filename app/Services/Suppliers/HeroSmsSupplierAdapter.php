@@ -26,8 +26,8 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
     public function isConfigured(): bool
     {
         return filter_var(config('herosms.enabled'), FILTER_VALIDATE_BOOLEAN)
-            && ! empty(config('herosms.api_key'))
-            && ! empty(config('herosms.base_url'))
+            && ! empty($this->apiKey())
+            && ! empty($this->baseUrl())
             && $this->settingEnabled('herosms');
     }
 
@@ -215,10 +215,10 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
         $started = microtime(true);
         $url = $this->url($endpoint);
         $response = Http::withHeaders([
-                'Authorization' => 'ApiKey '.(string) config('herosms.api_key'),
+                'Authorization' => 'ApiKey '.(string) $this->apiKey(),
                 'Accept' => 'application/json',
             ])
-            ->timeout((int) config('herosms.timeout', 30))
+            ->timeout($this->timeout())
             ->send($method, $url, $method === 'GET' ? ['query' => $query] : ['json' => $payload]);
 
         SupplierLog::create([
@@ -238,6 +238,35 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
         return $response;
     }
 
+    private function setting(string $key, mixed $default = null): mixed
+    {
+        return app(SettingsService::class)->get('supplier.herosms.'.$key, $default);
+    }
+
+    private function apiKey(): ?string
+    {
+        $value = $this->setting('api_key');
+        if ($value !== null && $value !== '') {
+            return (string) $value;
+        }
+
+        $fallback = config('herosms.api_key');
+
+        return $fallback !== null && $fallback !== '' ? (string) $fallback : null;
+    }
+
+    private function baseUrl(): string
+    {
+        $value = $this->setting('base_url') ?: config('herosms.base_url');
+
+        return rtrim((string) $value, '/');
+    }
+
+    private function timeout(): int
+    {
+        return max(5, min(120, (int) ($this->setting('timeout') ?: config('herosms.timeout', 30))));
+    }
+
     private function settingEnabled(string $provider, bool $default = true): bool
     {
         return (bool) app(SettingsService::class)->get('supplier.'.$provider.'_enabled', $default);
@@ -249,7 +278,7 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
             return $endpoint;
         }
 
-        return rtrim((string) config('herosms.base_url'), '/').'/'.ltrim($endpoint, '/');
+        return $this->baseUrl().'/'.ltrim($endpoint, '/');
     }
 
     private function productConfig(?Product $product): array

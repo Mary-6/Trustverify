@@ -93,6 +93,7 @@ class SupplierOperationsService
             'markup' => (float) $this->settings->get('pricing.global_markup_percent', 10),
             'usd_xaf_rate' => 597.85,
             'status' => 'active',
+            'limit' => (int) $this->settings->get('jap.service_limit', 0),
         ]);
 
         if (($result['catalog_count'] ?? 0) === 0) {

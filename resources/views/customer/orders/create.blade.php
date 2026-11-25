@@ -58,8 +58,9 @@
             </div>
 
             <div data-step-panel="2" class="hidden space-y-5">
+                @if($product->type === 'smm_service')
                 <div>
-                    <label class="text-sm font-bold text-brand-text" for="quantity">How many?</label>
+                    <label class="text-sm font-bold text-brand-text" for="quantity">Enter Amount</label>
                     @if($product->isPer1000())
                         <div class="mt-3 flex flex-wrap gap-2">
                             @foreach($quickAmounts as $amount)
@@ -70,6 +71,10 @@
                     <input id="quantity" name="quantity" type="number" min="{{ $product->min_order ?? 1 }}" max="{{ $product->max_order ?? 1000000 }}" value="{{ old('quantity', $product->min_order ?? 1) }}" required class="mt-3 w-full rounded-xl border-slate-300 px-4 py-3">
                     @error('quantity')<p class="mt-1 text-sm text-brand-error">{{ $message }}</p>@enderror
                 </div>
+                @else
+                <input id="quantity" name="quantity" type="hidden" value="1">
+                <div class="rounded-2xl border border-brand-teal/30 bg-brand-teal-soft p-4 text-sm font-semibold text-brand-text">This verification service uses one number per order, so no amount is required.</div>
+                @endif
 
                 @if($product->type === 'virtual_number')
                     <div>
@@ -144,7 +149,7 @@
 
                 <div class="flex gap-3">
                     <button type="button" data-prev-step="3" class="flex-1 rounded-xl border border-slate-300 px-5 py-3 text-sm font-extrabold text-brand-navy hover:border-brand-teal">Back</button>
-                    <button type="submit" class="flex-1 rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Place order</button>
+                    <button type="submit" class="flex-1 rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Order Now</button>
                 </div>
                 <p class="text-xs text-brand-muted">By placing this order you confirm the service details are correct.</p>
             </div>

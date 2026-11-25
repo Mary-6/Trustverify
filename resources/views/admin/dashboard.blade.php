@@ -112,9 +112,9 @@
             <a href="{{ route('admin.supplier-logs.index') }}" class="text-sm font-extrabold text-brand-teal hover:text-brand-navy dark:hover:text-white">Supplier logs →</a>
         </div>
 
-        <div class="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+        <div class="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             @foreach($providers as $provider)
-                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800">
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <h3 class="text-lg font-extrabold text-brand-navy dark:text-white">{{ $provider['label'] }}</h3>
@@ -129,9 +129,9 @@
                         </span>
                     </div>
 
-                    <div class="mt-5 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/60">
+                    <div class="mt-4 rounded-2xl bg-slate-50 p-3 dark:bg-slate-900/60">
                         <p class="text-xs font-bold uppercase tracking-wider text-brand-muted">Account balance</p>
-                        <p class="mt-2 text-2xl font-extrabold text-brand-navy dark:text-white">
+                        <p class="mt-2 text-xl font-extrabold text-brand-navy dark:text-white">
                             @if($provider['balance'] !== null)
                                 {{ number_format($provider['balance'], 2) }} {{ $provider['balance_currency'] }}
                             @elseif($provider['active'])
@@ -153,7 +153,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                    <div class="mt-4 grid gap-2 text-xs sm:grid-cols-3">
                         <div class="rounded-2xl border border-slate-100 p-3 dark:border-slate-800">
                             <p class="text-xs font-bold uppercase text-brand-muted">Last successful</p>
                             @if($provider['last_successful_request'])
@@ -195,8 +195,9 @@
                                 <button class="rounded-xl bg-brand-teal px-3 py-2 text-xs font-extrabold text-brand-navy transition hover:bg-brand-gold">Sync services</button>
                             </form>
                         @endif
-                        <a href="{{ route('admin.settings.index') }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Configure</a>
-                        <a href="{{ route('admin.supplier-logs.index') }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Logs</a>
+                        <a href="{{ route('admin.service-management.index', ['supplier' => $provider['key']]) }}" class="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Manage services</a>
+                        <a href="{{ $provider['key'] === 'herosms' ? route('admin.suppliers.settings', 'herosms') : route('admin.settings.index') }}" class="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Configure</a>
+                        <a href="{{ route('admin.supplier-logs.index') }}" class="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Logs</a>
                         <form method="POST" action="{{ route('admin.providers.toggle', $provider['key']) }}" onsubmit="return confirm('{{ $provider['enabled'] ? 'Deactivate' : 'Activate' }} {{ $provider['label'] }}?')">
                             @csrf
                             <button class="rounded-xl px-3 py-2 text-xs font-extrabold {{ $provider['enabled'] ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-500/15 dark:text-amber-200' : 'bg-emerald-600 text-white hover:bg-emerald-700' }}">
