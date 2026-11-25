@@ -49,6 +49,7 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
             'service' => $service,
             'link' => $link,
             'quantity' => (int) $order->quantity,
+            'idempotency_key' => $this->supplierIdempotencyKey($order),
         ];
 
         $response = $this->call('add', $params, $order->id, 'order.create');
@@ -136,6 +137,10 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
         }
 
         $data = $response->json() ?? [];
+        if (isset($data['error'])) {
+            return null;
+        }
+
         $balance = $data['balance'] ?? null;
         if (! is_numeric($balance)) {
             return null;
@@ -186,6 +191,11 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
         }
 
         return rtrim((string) config('justanotherpanel.base_url'), '/').'/'.ltrim($endpoint, '/');
+    }
+
+    private function supplierIdempotencyKey(Order $order): string
+    {
+        return 'tvsjap'.str_pad((string) $order->id, 12, '0', STR_PAD_LEFT);
     }
 
     private function mapStatus(string $status): string

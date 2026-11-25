@@ -54,6 +54,10 @@ class TextVerifiedCatalogImporter
                 continue;
             }
 
+            $existing = Product::where('supplier_adapter', 'textverified')
+                ->where('supplier_product_id', $offer['service_name'])
+                ->first();
+
             Product::updateOrCreate(
                 [
                     'supplier_adapter' => 'textverified',
@@ -67,7 +71,7 @@ class TextVerifiedCatalogImporter
                     'summary' => 'US mobile number for '.$offer['label'].' (SMS).',
                     'description' => 'Receive a US mobile number for '.$offer['label'].'. One SMS verification per order. Codes are delivered to your order when received. US numbers only.',
                     'terms' => 'Verification codes are time-sensitive. Do not share codes with anyone. This product provides US numbers only.',
-                    'price' => $price,
+                    'price' => $existing?->price ?? $price,
                     'currency' => 'XAF',
                     'supplier_cost' => $supplierCost,
                     'supplier' => 'textverified',

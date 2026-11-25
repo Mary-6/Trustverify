@@ -30,7 +30,6 @@ class SupplierStatusService
             ['key' => 'justanotherpanel', 'label' => 'JustAnotherPanel', 'type' => 'SMM', 'enabled_default' => true],
             ['key' => 'textverified', 'label' => 'TextVerified', 'type' => 'Verification', 'enabled_default' => true],
             ['key' => 'herosms', 'label' => 'HeroSMS', 'type' => 'Verification', 'enabled_default' => true],
-            ['key' => 'faussms', 'label' => 'FAUSSMS', 'type' => 'SMM', 'enabled_default' => false],
             ['key' => 'manual', 'label' => 'Manual fulfillment', 'type' => 'Internal', 'enabled_default' => true],
         ];
     }
@@ -62,10 +61,16 @@ class SupplierStatusService
             }
         }
 
-        $log = SupplierLog::query()
-            ->where(fn ($query) => $query->where('supplier', $key)->orWhere('adapter', $key))
-            ->latest()
-            ->first();
+        $logs = fn () => SupplierLog::query()
+            ->where(fn ($query) => $query->where('supplier', $key)->orWhere('adapter', $key));
+
+        $lastRequest = $logs()->latest()->first();
+        $lastSuccess = $logs()->where('status', 'success')->latest()->first();
+        $lastSync = $logs()->where('action', 'catalog.sync')->where('status', 'success')->latest()->first();
+        $lastError = $logs()->where('status', 'failed')->latest()->first();
+        $testLog = $logs()->where('action', 'connection.test')->latest()->first();
+
+        $connectionStatus = $this->connectionStatus($configured, $enabled, $balance, $balanceStatus, $testLog);
 
         return [
             'key' => $key,
@@ -75,20 +80,61 @@ class SupplierStatusService
             'enabled' => $enabled,
             'active' => $active,
             'status' => ! $configured ? 'not_configured' : (! $enabled ? 'disabled' : 'active'),
+            'connection_status' => $connectionStatus,
             'balance' => $balance,
             'balance_currency' => $balanceCurrency,
             'balance_status' => $balanceStatus,
             'services' => Product::where(fn ($query) => $query->where('supplier_adapter', $key)->orWhere('supplier', $key))->where('is_active', true)->count(),
             'orders' => Order::whereHas('product', fn ($query) => $query->where('supplier_adapter', $key)->orWhere('supplier', $key))->count(),
-            'last_request' => $log ? [
-                'action' => $log->action,
-                'endpoint' => $log->endpoint,
-                'http_status' => $log->http_status,
-                'status' => $log->status,
-                'duration_ms' => $log->duration_ms,
-                'created_at' => $log->created_at?->toDateTimeString(),
-                'ago' => $log->created_at?->diffForHumans(),
-            ] : null,
+            'last_request' => $this->logSummary($lastRequest),
+            'last_successful_request' => $this->logSummary($lastSuccess),
+            'last_sync' => $this->logSummary($lastSync, 'catalog.sync'),
+            'last_error' => $this->logSummary($lastError, null, true),
+            'can_test' => $key !== 'manual',
+            'can_sync' => $key !== 'manual',
         ];
+    }
+
+    private function connectionStatus(bool $configured, bool $enabled, ?float $balance, string $balanceStatus, ?SupplierLog $testLog): string
+    {
+        if (! $configured) {
+            return 'not_configured';
+        }
+
+        if (! $enabled) {
+            return 'disabled';
+        }
+
+        if ($testLog && $testLog->status === 'failed') {
+            return 'connection_failed';
+        }
+
+        if ($balance !== null || $balanceStatus === 'ok') {
+            return 'connected';
+        }
+
+        if ($testLog && $testLog->status === 'success') {
+            return 'balance_unavailable';
+        }
+
+        return 'not_tested';
+    }
+
+    private function logSummary(?SupplierLog $log, ?string $action = null, bool $withError = false): ?array
+    {
+        if (! $log) {
+            return null;
+        }
+
+        return array_filter([
+            'action' => $action ?? $log->action,
+            'endpoint' => $log->endpoint,
+            'http_status' => $log->http_status,
+            'status' => $log->status,
+            'duration_ms' => $log->duration_ms,
+            'created_at' => $log->created_at?->toDateTimeString(),
+            'ago' => $log->created_at?->diffForHumans(),
+            'error_message' => $withError ? $log->error_message : null,
+        ], fn ($value) => $value !== null);
     }
 }

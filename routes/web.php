@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\SupplierLogController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\Customer\ApiKeyController;
@@ -65,6 +66,8 @@ Route::middleware(['auth'])->prefix('account')->name('dashboard.')->group(functi
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::post('/providers/{provider}/toggle', [AdminDashboardController::class, 'toggleProvider'])->name('providers.toggle');
+    Route::post('/suppliers/{provider}/test', [AdminSupplierController::class, 'test'])->name('suppliers.test');
+    Route::post('/suppliers/{provider}/sync', [AdminSupplierController::class, 'sync'])->name('suppliers.sync');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');

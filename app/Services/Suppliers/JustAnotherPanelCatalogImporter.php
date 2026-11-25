@@ -16,7 +16,8 @@ class JustAnotherPanelCatalogImporter
         $types = array_values(array_filter(array_map('trim', explode(',', (string) ($options['types'] ?? 'Default')))));
         $markup = (float) ($options['markup'] ?? 10);
         $usdXafRate = (float) ($options['usd_xaf_rate'] ?? 597.85);
-        $status = in_array(($options['status'] ?? 'active'), ['active', 'draft', 'inactive', 'archived'], true) ? $options['status'] : 'draft';
+        $statusOption = $options['status'] ?? 'active';
+        $status = in_array($statusOption, ['active', 'draft', 'inactive', 'archived'], true) ? $statusOption : 'draft';
         $limit = max(0, (int) ($options['limit'] ?? 0));
         $dryRun = (bool) ($options['dry_run'] ?? false);
 
@@ -101,6 +102,10 @@ class JustAnotherPanelCatalogImporter
                 ]
             );
 
+            $existing = Product::where('supplier_adapter', 'justanotherpanel')
+                ->where('supplier_product_id', (string) $serviceId)
+                ->first();
+
             Product::updateOrCreate(
                 [
                     'supplier_adapter' => 'justanotherpanel',
@@ -113,7 +118,7 @@ class JustAnotherPanelCatalogImporter
                     'summary' => Str::limit($displayName, 500, ''),
                     'description' => $this->description($service, $brand, $rate, $usdXafRate, $markup),
                     'terms' => 'Delivery time, refill eligibility and cancellation rules are controlled by the JustAnotherPanel service configuration.',
-                    'price' => $price,
+                    'price' => $existing?->price ?? $price,
                     'currency' => 'XAF',
                     'supplier_cost' => $supplierCost,
                     'supplier' => 'justanotherpanel',

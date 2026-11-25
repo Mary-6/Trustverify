@@ -120,8 +120,12 @@
                             <h3 class="text-lg font-extrabold text-brand-navy dark:text-white">{{ $provider['label'] }}</h3>
                             <p class="mt-1 text-xs font-bold uppercase tracking-wider text-brand-muted">{{ $provider['type'] }}</p>
                         </div>
-                        <span class="rounded-full px-3 py-1 text-xs font-extrabold {{ $provider['status'] === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200' : ($provider['status'] === 'disabled' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200' : 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-200') }}">
-                            {{ $provider['status'] === 'active' ? 'Active' : ($provider['status'] === 'disabled' ? 'Disabled' : 'Not configured') }}
+                        @php
+                            $connectionLabels = ['connected' => 'Connected', 'balance_unavailable' => 'Balance unavailable', 'connection_failed' => 'Connection failed', 'not_configured' => 'Not configured', 'disabled' => 'Disabled', 'not_tested' => 'Not tested'];
+                            $connectionStyles = ['connected' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200', 'balance_unavailable' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-200', 'connection_failed' => 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-200', 'not_configured' => 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-200', 'disabled' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200', 'not_tested' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'];
+                        @endphp
+                        <span class="rounded-full px-3 py-1 text-xs font-extrabold {{ $connectionStyles[$provider['connection_status']] ?? $connectionStyles['not_tested'] }}">
+                            {{ $connectionLabels[$provider['connection_status']] ?? 'Not tested' }}
                         </span>
                     </div>
 
@@ -149,17 +153,48 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 rounded-2xl border border-slate-100 p-3 text-sm dark:border-slate-800">
-                        <p class="text-xs font-bold uppercase text-brand-muted">Last request</p>
-                        @if($provider['last_request'])
-                            <p class="mt-1 font-extrabold text-brand-navy dark:text-white">{{ $provider['last_request']['action'] }} · HTTP {{ $provider['last_request']['http_status'] ?? '—' }}</p>
-                            <p class="mt-1 text-xs text-brand-muted">{{ $provider['last_request']['ago'] }} · {{ $provider['last_request']['duration_ms'] }}ms</p>
-                        @else
-                            <p class="mt-1 text-brand-muted">No supplier requests logged yet.</p>
-                        @endif
+                    <div class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                        <div class="rounded-2xl border border-slate-100 p-3 dark:border-slate-800">
+                            <p class="text-xs font-bold uppercase text-brand-muted">Last successful</p>
+                            @if($provider['last_successful_request'])
+                                <p class="mt-1 font-extrabold text-brand-navy dark:text-white">{{ $provider['last_successful_request']['action'] }} · HTTP {{ $provider['last_successful_request']['http_status'] ?? '—' }}</p>
+                                <p class="mt-1 text-xs text-brand-muted">{{ $provider['last_successful_request']['ago'] }}</p>
+                            @else
+                                <p class="mt-1 text-brand-muted">No successful request yet.</p>
+                            @endif
+                        </div>
+                        <div class="rounded-2xl border border-slate-100 p-3 dark:border-slate-800">
+                            <p class="text-xs font-bold uppercase text-brand-muted">Last sync</p>
+                            @if($provider['last_sync'])
+                                <p class="mt-1 font-extrabold text-brand-navy dark:text-white">{{ $provider['last_sync']['ago'] }}</p>
+                            @else
+                                <p class="mt-1 text-brand-muted">Never synced.</p>
+                            @endif
+                        </div>
+                        <div class="rounded-2xl border border-slate-100 p-3 dark:border-slate-800">
+                            <p class="text-xs font-bold uppercase text-brand-muted">Last error</p>
+                            @if($provider['last_error'])
+                                <p class="mt-1 truncate font-extrabold text-red-600 dark:text-red-300" title="{{ $provider['last_error']['error_message'] ?? '' }}">{{ Str::limit($provider['last_error']['error_message'] ?? 'Request failed', 80) }}</p>
+                                <p class="mt-1 text-xs text-brand-muted">{{ $provider['last_error']['ago'] }}</p>
+                            @else
+                                <p class="mt-1 text-brand-muted">No errors logged.</p>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="mt-4 flex flex-wrap gap-2">
+                        @if($provider['can_test'])
+                            <form method="POST" action="{{ route('admin.suppliers.test', $provider['key']) }}">
+                                @csrf
+                                <button class="rounded-xl bg-brand-navy px-3 py-2 text-xs font-extrabold text-white transition hover:bg-brand-teal dark:bg-slate-800 dark:hover:bg-slate-700">Test connection</button>
+                            </form>
+                        @endif
+                        @if($provider['can_sync'])
+                            <form method="POST" action="{{ route('admin.suppliers.sync', $provider['key']) }}">
+                                @csrf
+                                <button class="rounded-xl bg-brand-teal px-3 py-2 text-xs font-extrabold text-brand-navy transition hover:bg-brand-gold">Sync services</button>
+                            </form>
+                        @endif
                         <a href="{{ route('admin.settings.index') }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Configure</a>
                         <a href="{{ route('admin.supplier-logs.index') }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-extrabold text-brand-navy transition hover:border-brand-teal hover:text-brand-teal dark:border-slate-700 dark:text-white">Logs</a>
                         <form method="POST" action="{{ route('admin.providers.toggle', $provider['key']) }}" onsubmit="return confirm('{{ $provider['enabled'] ? 'Deactivate' : 'Activate' }} {{ $provider['label'] }}?')">

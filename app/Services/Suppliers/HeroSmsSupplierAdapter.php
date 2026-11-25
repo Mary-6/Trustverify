@@ -114,6 +114,10 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
         $smsCode = $data['smsCode'] ?? null;
         $smsText = $data['smsText'] ?? null;
 
+        if (! $smsCode && $smsText && preg_match('/\b\d{4,8}\b/', (string) $smsText, $matches)) {
+            $smsCode = $matches[0];
+        }
+
         if (! $smsCode && ! $smsText) {
             return SupplierResult::success($order->supplier_reference, [
                 'status' => 'processing',
@@ -123,6 +127,8 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
         }
 
         $finish = $this->request('POST', '/activations/'.rawurlencode($order->supplier_reference).'/finish', [], [], $order->id, 'activation.finish');
+        $finishPayload = $finish->json() ?? [];
+        $finishStatus = $finishPayload['data']['status'] ?? $finishPayload['status'] ?? null;
 
         return SupplierResult::success($order->supplier_reference, [
             'status' => 'completed',
@@ -131,8 +137,8 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
             'delivery' => array_filter([
                 'sms_code' => $smsCode,
                 'sms_text' => $smsText,
-                'phone_from' => $data['from'] ?? null,
-                'finish_status' => ($finish->json() ?? [])['status'] ?? null,
+                'phone_from' => $data['phoneFrom'] ?? $data['from'] ?? null,
+                'finish_status' => $finishStatus,
             ], fn ($value) => $value !== null && $value !== ''),
         ], 'HeroSMS SMS received.');
     }
@@ -145,7 +151,63 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
             return [];
         }
 
-        return $response->successful() ? ($response->json() ?? []) : [];
+        if (! $response->successful()) {
+            return [];
+        }
+
+        return $this->normalizeOffers($response->json() ?? []);
+    }
+
+    private function normalizeOffers(array $payload): array
+    {
+        $data = $payload['data'] ?? $payload;
+        if (! is_array($data)) {
+            return [];
+        }
+
+        $offers = [];
+
+        foreach ($data as $service => $countries) {
+            if (! is_string($service) || ! is_array($countries) || array_is_list($countries)) {
+                continue;
+            }
+
+            foreach ($countries as $country => $offer) {
+                if (! is_array($offer)) {
+                    continue;
+                }
+
+                $offers[] = $this->offerSummary($service, (string) $country, $offer);
+            }
+        }
+
+        foreach ($data as $offer) {
+            if (! is_array($offer) || array_is_list($offer)) {
+                continue;
+            }
+
+            $service = $offer['service'] ?? $offer['serviceCode'] ?? $offer['service_id'] ?? null;
+            $country = $offer['country'] ?? $offer['countryId'] ?? $offer['country_id'] ?? null;
+            if ($service && $country) {
+                $offers[] = $this->offerSummary((string) $service, (string) $country, $offer);
+            }
+        }
+
+        return $offers;
+    }
+
+    private function offerSummary(string $service, string $country, array $offer): array
+    {
+        return [
+            'service' => $service,
+            'country' => $country,
+            'price' => $offer['prices']['default'] ?? $offer['price'] ?? $offer['cost'] ?? null,
+            'prices' => $offer['prices'] ?? [],
+            'counts' => $offer['counts'] ?? [],
+            'currency' => $offer['currency'] ?? null,
+            'country_phone_code' => $offer['countryPhoneCode'] ?? null,
+            'raw' => $offer,
+        ];
     }
 
     private function request(string $method, string $endpoint, array $payload = [], array $query = [], ?int $orderId = null, string $action = 'request')

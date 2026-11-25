@@ -55,9 +55,8 @@
                 <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="justanotherpanel_enabled" value="1" {{ old('justanotherpanel_enabled', $settings['supplier']['justanotherpanel_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> JustAnotherPanel</label>
                 <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="textverified_enabled" value="1" {{ old('textverified_enabled', $settings['supplier']['textverified_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> TextVerified</label>
                 <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="herosms_enabled" value="1" {{ old('herosms_enabled', $settings['supplier']['herosms_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> HeroSMS</label>
-                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="faussms_enabled" value="1" {{ old('faussms_enabled', $settings['supplier']['faussms_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> FAUSSMS</label>
             </div>
-            <p class="mt-3 text-xs text-brand-muted">FAUSSMS endpoints must be configured from authorized API documentation before live submission is enabled.</p>
+            <p class="mt-3 text-xs text-brand-muted">These toggles control whether each supplier can receive new orders. API credentials stay in server environment variables.</p>
         </div>
 
         <button class="rounded-xl bg-brand-teal px-6 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Save settings</button>

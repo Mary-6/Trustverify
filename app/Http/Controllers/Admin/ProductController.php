@@ -74,7 +74,7 @@ class ProductController extends Controller
             'supplier_cost' => ['nullable', 'numeric', 'min:0'],
             'supplier' => ['nullable', 'string', 'max:40'],
             'supplier_product_id' => ['nullable', 'string', 'max:120'],
-            'supplier_adapter' => ['nullable', 'in:faussms,manual,textverified,herosms,justanotherpanel'],
+            'supplier_adapter' => ['nullable', 'in:manual,textverified,herosms,justanotherpanel'],
             'supplier_service_name' => ['nullable', 'string', 'max:160'],
             'supplier_capability' => ['nullable', 'string', 'max:50'],
             'supplier_area_codes' => ['nullable', 'string', 'max:500'],

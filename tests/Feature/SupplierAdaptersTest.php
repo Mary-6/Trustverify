@@ -135,7 +135,7 @@ class SupplierAdaptersTest extends TestCase
                 return Http::response(['data' => [
                     'smsCode' => '123456',
                     'smsText' => 'Your verification code is 123456',
-                    'from' => '+237699999999',
+                    'phoneFrom' => '+237699999999',
                 ]]);
             }
 
@@ -169,8 +169,29 @@ class SupplierAdaptersTest extends TestCase
         $this->assertSame('completed', $status->data['status']);
         $this->assertSame('SMS_RECEIVED', $status->data['supplier_status']);
         $this->assertSame('123456', $status->data['delivery']['sms_code'] ?? null);
+        $this->assertSame('+237699999999', $status->data['delivery']['phone_from'] ?? null);
         $this->assertTrue(SupplierLog::where('action', 'activation.otp_last')->exists());
         $this->assertTrue(SupplierLog::where('action', 'activation.finish')->exists());
+    }
+
+    public function test_herosms_catalog_normalizes_documented_offers(): void
+    {
+        config()->set('herosms.enabled', true);
+        config()->set('herosms.base_url', 'https://herosms.test/api/v1');
+        config()->set('herosms.api_key', 'hero-key');
+
+        Http::fake(fn () => Http::response(['data' => [
+            'ot' => ['16' => ['counts' => ['total' => 3], 'prices' => ['default' => 0.5]]],
+            'tg' => ['6' => ['counts' => ['total' => 1], 'prices' => ['default' => 1.2]]],
+        ]]));
+
+        $offers = app(HeroSmsSupplierAdapter::class)->catalog();
+
+        $this->assertCount(2, $offers);
+        $this->assertSame('ot', $offers[0]['service']);
+        $this->assertSame('16', $offers[0]['country']);
+        $this->assertSame(0.5, $offers[0]['price']);
+        $this->assertSame(3, $offers[0]['counts']['total']);
     }
 
     public function test_herosms_requires_country_mapping_before_http(): void
@@ -262,7 +283,8 @@ class SupplierAdaptersTest extends TestCase
                 && ($data['key'] ?? null) === 'jap-key'
                 && ($data['service'] ?? null) === 123
                 && ($data['quantity'] ?? null) === 100
-                && ! array_key_exists('idempotency_key', $data);
+                && isset($data['idempotency_key'])
+                && preg_match('/^[A-Za-z0-9]{16,128}$/', (string) $data['idempotency_key']);
         });
 
         $order->forceFill(['supplier_reference' => '23501', 'status' => Order::STATUS_SUBMITTED])->save();

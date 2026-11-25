@@ -175,17 +175,13 @@ class OrderService
     {
         $adapter = $product->supplier_adapter ?: $product->supplier;
 
-        if (! in_array($adapter, ['faussms', 'textverified', 'herosms', 'justanotherpanel'], true)) {
+        if (! in_array($adapter, ['textverified', 'herosms', 'justanotherpanel'], true)) {
             return false;
         }
 
         $meta = $product->meta ?? [];
 
         $service = $meta['service_name'] ?? $meta['service'] ?? $product->supplier_product_id;
-
-        if ($adapter === 'faussms') {
-            return ! empty($product->supplier_product_id);
-        }
 
         if ($adapter === 'textverified') {
             return $product->type === 'virtual_number' && ! empty($service);

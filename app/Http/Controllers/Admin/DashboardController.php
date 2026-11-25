@@ -41,11 +41,10 @@ class DashboardController extends Controller
 
     public function toggleProvider(Request $request, string $provider, SettingsService $settings)
     {
-        $providers = ['manual', 'faussms', 'textverified', 'herosms', 'justanotherpanel'];
+        $providers = ['manual', 'textverified', 'herosms', 'justanotherpanel'];
         abort_unless(in_array($provider, $providers, true), 404);
 
-        $default = $provider === 'faussms' ? false : true;
-        $current = (bool) $settings->get('supplier.'.$provider.'_enabled', $default);
+        $current = (bool) $settings->get('supplier.'.$provider.'_enabled', true);
         $settings->set('supplier.'.$provider.'_enabled', ! $current, 'boolean', 'supplier');
 
         return back()->with('status', ucfirst($provider).' '.($current ? 'deactivated' : 'activated').'.');

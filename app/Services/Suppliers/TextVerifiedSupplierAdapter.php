@@ -192,7 +192,7 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
             $data = $data['data'];
         }
 
-        $balance = $data['balance'] ?? $data['accountBalance'] ?? $data['credits'] ?? null;
+        $balance = $data['currentBalance'] ?? $data['balance'] ?? $data['accountBalance'] ?? $data['credits'] ?? null;
         if (! is_numeric($balance)) {
             return null;
         }

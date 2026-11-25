@@ -26,6 +26,11 @@ class SupplierFulfillmentService
             return;
         }
 
+        if ($order->submitted_at && $order->status === Order::STATUS_PROCESSING) {
+            $this->orders->recordStatus($order, $order->status, 'Supplier submission was already attempted without a reference; manual review is required to avoid duplicate supplier orders.');
+            return;
+        }
+
         try {
             $adapter = $this->suppliers->adapterFor($product);
         } catch (Throwable $e) {

@@ -10,7 +10,7 @@ class SupplierManager
     public function adapterFor(?Product $product = null): SupplierAdapter
     {
         $supplier = $product?->supplier;
-        $name = $product?->supplier_adapter ?: (in_array($supplier, ['faussms', 'textverified', 'herosms', 'justanotherpanel'], true) ? $supplier : 'manual');
+        $name = $product?->supplier_adapter ?: (in_array($supplier, ['textverified', 'herosms', 'justanotherpanel'], true) ? $supplier : 'manual');
 
         return $this->adapter($name);
     }
@@ -19,7 +19,6 @@ class SupplierManager
     {
         return match ($name) {
             'manual' => app(ManualSupplierAdapter::class),
-            'faussms' => app(FaussmsSupplierAdapter::class),
             'textverified' => app(TextVerifiedSupplierAdapter::class),
             'herosms' => app(HeroSmsSupplierAdapter::class),
             'justanotherpanel' => app(JustAnotherPanelSupplierAdapter::class),
