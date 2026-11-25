@@ -1,4 +1,4 @@
-@extends('layouts.account')
+@extends('layouts.admin')
 
 @section('title', 'Admin Settings | TrustVerifySMS')
 
@@ -50,9 +50,12 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6">
             <h2 class="font-extrabold text-brand-navy">Supplier</h2>
-            <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="manual_fulfillment_enabled" value="1" {{ old('manual_fulfillment_enabled', $settings['supplier']['manual_fulfillment_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> Manual fulfillment enabled</label>
-                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="faussms_enabled" value="1" {{ old('faussms_enabled', $settings['supplier']['faussms_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> FAUSSMS adapter enabled</label>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="manual_fulfillment_enabled" value="1" {{ old('manual_fulfillment_enabled', $settings['supplier']['manual_fulfillment_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> Manual fulfillment</label>
+                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="justanotherpanel_enabled" value="1" {{ old('justanotherpanel_enabled', $settings['supplier']['justanotherpanel_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> JustAnotherPanel</label>
+                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="textverified_enabled" value="1" {{ old('textverified_enabled', $settings['supplier']['textverified_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> TextVerified</label>
+                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="herosms_enabled" value="1" {{ old('herosms_enabled', $settings['supplier']['herosms_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> HeroSMS</label>
+                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-sm font-semibold"><input type="checkbox" name="faussms_enabled" value="1" {{ old('faussms_enabled', $settings['supplier']['faussms_enabled']) ? 'checked' : '' }} class="rounded text-brand-teal"> FAUSSMS</label>
             </div>
             <p class="mt-3 text-xs text-brand-muted">FAUSSMS endpoints must be configured from authorized API documentation before live submission is enabled.</p>
         </div>

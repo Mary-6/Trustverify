@@ -32,6 +32,9 @@ class SettingController extends Controller
                 'supplier' => [
                     'manual_fulfillment_enabled' => $settings->get('supplier.manual_fulfillment_enabled', true),
                     'faussms_enabled' => $settings->get('supplier.faussms_enabled', false),
+                    'textverified_enabled' => $settings->get('supplier.textverified_enabled', true),
+                    'herosms_enabled' => $settings->get('supplier.herosms_enabled', true),
+                    'justanotherpanel_enabled' => $settings->get('supplier.justanotherpanel_enabled', true),
                 ],
             ],
         ]);
@@ -51,6 +54,9 @@ class SettingController extends Controller
             'referral_reward_amount' => ['nullable', 'numeric', 'min:0'],
             'manual_fulfillment_enabled' => ['nullable', 'boolean'],
             'faussms_enabled' => ['nullable', 'boolean'],
+            'textverified_enabled' => ['nullable', 'boolean'],
+            'herosms_enabled' => ['nullable', 'boolean'],
+            'justanotherpanel_enabled' => ['nullable', 'boolean'],
         ]);
 
         $settings->set('general.site_name', $data['site_name'] ?? config('app.name'), 'string', 'general');
@@ -66,6 +72,9 @@ class SettingController extends Controller
         $settings->set('referrals.reward_amount', $data['referral_reward_amount'] ?? 0, 'integer', 'referrals');
         $settings->set('supplier.manual_fulfillment_enabled', $request->boolean('manual_fulfillment_enabled'), 'boolean', 'supplier');
         $settings->set('supplier.faussms_enabled', $request->boolean('faussms_enabled'), 'boolean', 'supplier');
+        $settings->set('supplier.textverified_enabled', $request->boolean('textverified_enabled'), 'boolean', 'supplier');
+        $settings->set('supplier.herosms_enabled', $request->boolean('herosms_enabled'), 'boolean', 'supplier');
+        $settings->set('supplier.justanotherpanel_enabled', $request->boolean('justanotherpanel_enabled'), 'boolean', 'supplier');
 
         return back()->with('status', 'Settings saved.');
     }

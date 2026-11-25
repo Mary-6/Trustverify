@@ -11,11 +11,12 @@ use App\Models\SupplierLog;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\SettingsService;
+use App\Services\SupplierStatusService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(SupplierStatusService $suppliers)
     {
         $currency = strtoupper((string) app(SettingsService::class)->get('general.primary_currency', 'XAF'));
 
@@ -33,7 +34,20 @@ class DashboardController extends Controller
                 'new_messages' => ContactMessage::where('status', 'new')->count(),
                 'supplier_failures' => SupplierLog::where('status', 'failed')->count(),
             ],
+            'providers' => $suppliers->providers(),
             'recentOrders' => Order::with(['user', 'product'])->latest()->limit(10)->get(),
         ]);
+    }
+
+    public function toggleProvider(Request $request, string $provider, SettingsService $settings)
+    {
+        $providers = ['manual', 'faussms', 'textverified', 'herosms', 'justanotherpanel'];
+        abort_unless(in_array($provider, $providers, true), 404);
+
+        $default = $provider === 'faussms' ? false : true;
+        $current = (bool) $settings->get('supplier.'.$provider.'_enabled', $default);
+        $settings->set('supplier.'.$provider.'_enabled', ! $current, 'boolean', 'supplier');
+
+        return back()->with('status', ucfirst($provider).' '.($current ? 'deactivated' : 'activated').'.');
     }
 }

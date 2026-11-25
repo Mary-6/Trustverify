@@ -64,6 +64,7 @@ Route::middleware(['auth'])->prefix('account')->name('dashboard.')->group(functi
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/providers/{provider}/toggle', [AdminDashboardController::class, 'toggleProvider'])->name('providers.toggle');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');

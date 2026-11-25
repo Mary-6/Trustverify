@@ -1,4 +1,4 @@
-@extends('layouts.account')
+@extends('layouts.admin')
 
 @section('title', ($country->exists ? 'Edit' : 'Add').' Country | Admin')
 

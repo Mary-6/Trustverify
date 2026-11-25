@@ -5,6 +5,7 @@ namespace App\Services\Suppliers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\SupplierLog;
+use App\Services\SettingsService;
 use Illuminate\Support\Facades\Http;
 
 class HeroSmsSupplierAdapter implements SupplierAdapter
@@ -26,7 +27,8 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
     {
         return filter_var(config('herosms.enabled'), FILTER_VALIDATE_BOOLEAN)
             && ! empty(config('herosms.api_key'))
-            && ! empty(config('herosms.base_url'));
+            && ! empty(config('herosms.base_url'))
+            && $this->settingEnabled('herosms');
     }
 
     public function placeOrder(Order $order): SupplierResult
@@ -172,6 +174,11 @@ class HeroSmsSupplierAdapter implements SupplierAdapter
         ]);
 
         return $response;
+    }
+
+    private function settingEnabled(string $provider, bool $default = true): bool
+    {
+        return (bool) app(SettingsService::class)->get('supplier.'.$provider.'_enabled', $default);
     }
 
     private function url(string $endpoint): string

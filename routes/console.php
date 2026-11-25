@@ -116,7 +116,13 @@ Artisan::command('suppliers:sync-textverified-products {--markup=10 : Retail mar
         'dry_run' => (bool) $this->option('dry-run'),
     ]);
 
-    $this->info(($result['dry_run'] ? 'Dry run complete' : 'Sync complete').': '.$result['imported'].' TextVerified products of '.$result['catalog_count'].'.');
+    if (isset($result['error'])) {
+        $this->warn('TextVerified sync skipped: '.$result['error']);
+
+        return 1;
+    }
+
+    $this->info(($result['dry_run'] ? 'Dry run complete' : 'Sync complete').': '.$result['imported'].' TextVerified products of '.$result['catalog_count'].' matched '.$result['matched'].'.');
     if ($result['dry_run']) {
         $this->warn('No products were written.');
     }
@@ -183,7 +189,7 @@ Artisan::command('site:bootstrap {--skip-migrate : Skip database migrations}', f
     if ($activeSmm === 0) {
         $this->info('No active SMM products found; importing JustAnotherPanel catalogue.');
         $import = $jap->import([
-            'brands' => ['instagram', 'tiktok', 'facebook', 'youtube', 'telegram', 'whatsapp'],
+            'brands' => ['instagram', 'tiktok', 'facebook', 'youtube', 'telegram', 'x-twitter', 'whatsapp'],
             'types' => 'Default',
             'markup' => 10,
             'usd_xaf_rate' => 597.85,
@@ -199,7 +205,11 @@ Artisan::command('site:bootstrap {--skip-migrate : Skip database migrations}', f
         'usd_xaf_rate' => 597.85,
         'status' => 'active',
     ]);
-    $this->info('TextVerified sync: '.$textVerified['imported'].' products.');
+    if (isset($textVerified['error'])) {
+        $this->warn('TextVerified sync skipped: '.$textVerified['error']);
+    } else {
+        $this->info('TextVerified sync: '.$textVerified['imported'].' products.');
+    }
 
     $sync = $jap->sync([]);
     if (isset($sync['error'])) {

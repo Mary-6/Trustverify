@@ -1,4 +1,4 @@
-@extends('layouts.account')
+@extends('layouts.admin')
 
 @section('title', $ticket->subject.' | Admin Ticket')
 

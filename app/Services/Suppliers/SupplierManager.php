@@ -12,6 +12,11 @@ class SupplierManager
         $supplier = $product?->supplier;
         $name = $product?->supplier_adapter ?: (in_array($supplier, ['faussms', 'textverified', 'herosms', 'justanotherpanel'], true) ? $supplier : 'manual');
 
+        return $this->adapter($name);
+    }
+
+    public function adapter(string $name): SupplierAdapter
+    {
         return match ($name) {
             'manual' => app(ManualSupplierAdapter::class),
             'faussms' => app(FaussmsSupplierAdapter::class),

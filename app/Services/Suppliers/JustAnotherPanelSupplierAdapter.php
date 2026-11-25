@@ -5,6 +5,7 @@ namespace App\Services\Suppliers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\SupplierLog;
+use App\Services\SettingsService;
 use Illuminate\Support\Facades\Http;
 
 class JustAnotherPanelSupplierAdapter implements SupplierAdapter
@@ -25,7 +26,9 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
 
     public function isConfigured(): bool
     {
-        return ! empty(config('justanotherpanel.api_key')) && ! empty(config('justanotherpanel.base_url'));
+        return ! empty(config('justanotherpanel.api_key'))
+            && ! empty(config('justanotherpanel.base_url'))
+            && $this->settingEnabled('justanotherpanel');
     }
 
     public function placeOrder(Order $order): SupplierResult
@@ -125,6 +128,25 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
         return array_values(array_filter($data, fn ($service) => is_array($service) && isset($service['service'])));
     }
 
+    public function accountBalance(): ?array
+    {
+        $response = $this->call('balance', [], null, 'account.balance');
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $data = $response->json() ?? [];
+        $balance = $data['balance'] ?? null;
+        if (! is_numeric($balance)) {
+            return null;
+        }
+
+        return [
+            'balance' => (float) $balance,
+            'currency' => strtoupper((string) ($data['currency'] ?? 'USD')),
+        ];
+    }
+
     private function call(string $action, array $params = [], ?int $orderId = null, string $logAction = 'request')
     {
         $started = microtime(true);
@@ -150,6 +172,11 @@ class JustAnotherPanelSupplierAdapter implements SupplierAdapter
         ]);
 
         return $response;
+    }
+
+    private function settingEnabled(string $provider, bool $default = true): bool
+    {
+        return (bool) app(SettingsService::class)->get('supplier.'.$provider.'_enabled', $default);
     }
 
     private function url(string $endpoint): string

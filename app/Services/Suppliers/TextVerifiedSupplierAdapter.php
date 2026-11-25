@@ -5,6 +5,7 @@ namespace App\Services\Suppliers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\SupplierLog;
+use App\Services\SettingsService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -32,7 +33,8 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
         return filter_var(config('textverified.enabled'), FILTER_VALIDATE_BOOLEAN)
             && ! empty(config('textverified.api_key'))
             && ! empty(config('textverified.api_username'))
-            && ! empty(config('textverified.base_url'));
+            && ! empty(config('textverified.base_url'))
+            && $this->settingEnabled('textverified');
     }
 
     public function placeOrder(Order $order): SupplierResult
@@ -132,6 +134,73 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
             'capability' => $service['capability'] ?? null,
             'description' => $service['description'] ?? null,
         ])->filter(fn ($service) => $service['service_name'])->values()->all();
+    }
+
+    public function pricing(string $serviceName, string $capability = 'sms', bool $areaCode = false, bool $carrier = false, string $numberType = 'mobile'): ?array
+    {
+        $capability = $this->capability($capability);
+        if (! $capability || ! in_array($numberType, ['mobile', 'voip', 'landline'], true)) {
+            return null;
+        }
+
+        try {
+            $response = $this->request('POST', '/api/pub/v2/pricing/verifications', [
+                'serviceName' => $serviceName,
+                'areaCode' => $areaCode,
+                'carrier' => $carrier,
+                'numberType' => $numberType,
+                'capability' => $capability,
+            ], [], null, 'verification.pricing');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $data = $response->json() ?? [];
+        if (isset($data['data']) && is_array($data['data'])) {
+            $data = $data['data'];
+        }
+
+        $price = $data['price'] ?? null;
+        if (! is_numeric($price)) {
+            return null;
+        }
+
+        return [
+            'service_name' => (string) ($data['serviceName'] ?? $serviceName),
+            'price' => (float) $price,
+        ];
+    }
+
+    public function accountBalance(): ?array
+    {
+        try {
+            $response = $this->request('GET', '/api/pub/v2/account/me', [], [], null, 'account.balance');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $data = $response->json() ?? [];
+        if (isset($data['data']) && is_array($data['data'])) {
+            $data = $data['data'];
+        }
+
+        $balance = $data['balance'] ?? $data['accountBalance'] ?? $data['credits'] ?? null;
+        if (! is_numeric($balance)) {
+            return null;
+        }
+
+        return [
+            'balance' => (float) $balance,
+            'currency' => strtoupper((string) ($data['currency'] ?? 'USD')),
+        ];
     }
 
     private function bearerToken(): string
@@ -238,6 +307,11 @@ class TextVerifiedSupplierAdapter implements SupplierAdapter
         }
 
         return rtrim((string) config('textverified.base_url'), '/').'/'.ltrim($endpoint, '/');
+    }
+
+    private function settingEnabled(string $provider, bool $default = true): bool
+    {
+        return (bool) app(SettingsService::class)->get('supplier.'.$provider.'_enabled', $default);
     }
 
     private function productConfig(?Product $product): array

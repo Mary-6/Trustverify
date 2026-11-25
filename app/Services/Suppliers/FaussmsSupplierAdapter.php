@@ -4,6 +4,7 @@ namespace App\Services\Suppliers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\SettingsService;
 use Illuminate\Support\Facades\Http;
 
 class FaussmsSupplierAdapter implements SupplierAdapter
@@ -23,7 +24,9 @@ class FaussmsSupplierAdapter implements SupplierAdapter
 
     public function isConfigured(): bool
     {
-        return ! empty(config('faussms.api_key')) && ! empty(config('faussms.base_url'));
+        return ! empty(config('faussms.api_key'))
+            && ! empty(config('faussms.base_url'))
+            && $this->settingEnabled('faussms', false);
     }
 
     public function placeOrder(Order $order): SupplierResult
@@ -76,6 +79,11 @@ class FaussmsSupplierAdapter implements SupplierAdapter
 
         $response = $this->request('GET', $endpoint, [], null, 'catalog');
         return $response->successful() ? ($response->json() ?? []) : [];
+    }
+
+    private function settingEnabled(string $provider, bool $default = true): bool
+    {
+        return (bool) app(SettingsService::class)->get('supplier.'.$provider.'_enabled', $default);
     }
 
     private function request(string $method, string $endpoint, array $payload, ?int $orderId, string $action = 'place_order')
