@@ -72,7 +72,7 @@
                                 <span class="text-xs font-bold uppercase text-brand-muted">Balance</span>
                                 <span class="font-extrabold text-brand-navy">{{ number_format((float) $accountWallet->balance, 0) }} {{ $accountWallet->currency }}</span>
                             </div>
-                            <a href="{{ route('dashboard.wallet.index') }}#add-funds" class="rounded-lg bg-brand-teal px-3 py-2 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Add Money</a>
+                            <a href="{{ route('dashboard.wallet.index') }}#add-funds" class="rounded-lg bg-brand-teal px-3 py-2 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Deposit</a>
                         @endif
 
                         <details class="relative">

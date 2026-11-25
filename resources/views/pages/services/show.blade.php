@@ -21,17 +21,16 @@
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Maximum order</dt><dd class="mt-1 text-sm font-semibold">{{ $product->max_order ?? 'Unlimited' }}</dd></div>
                     @if($delivery = $product->estimatedDelivery())<div><dt class="text-xs font-bold uppercase text-brand-muted">Est. delivery</dt><dd class="mt-1 text-sm font-semibold">{{ $delivery }}</dd></div>@endif
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Availability</dt><dd class="mt-1 text-sm font-semibold">{{ $product->isAvailable() ? 'Available' : 'Unavailable' }}</dd></div>
-                    <div><dt class="text-xs font-bold uppercase text-brand-muted">Supplier mode</dt><dd class="mt-1 text-sm font-semibold">{{ $product->supplier_adapter ?: $product->supplier ?: 'manual' }}</dd></div>
                 </dl>
             </div>
 
-            @if($product->description)
-                <div class="mt-8 prose prose-slate max-w-none text-sm leading-7 text-brand-text">{!! nl2br(e($product->description)) !!}</div>
+            @if($description = $product->customerDescription())
+                <div class="mt-8 prose prose-slate max-w-none text-sm leading-7 text-brand-text">{!! nl2br(e($description)) !!}</div>
             @endif
-            @if($product->terms)
+            @if($terms = $product->customerTerms())
                 <div class="mt-8 rounded-2xl border border-brand-gold/30 bg-brand-gold/10 p-5">
                     <h2 class="font-extrabold text-brand-navy">Terms</h2>
-                    <p class="mt-2 text-sm leading-6 text-brand-text">{!! nl2br(e($product->terms)) !!}</p>
+                    <p class="mt-2 text-sm leading-6 text-brand-text">{!! nl2br(e($terms)) !!}</p>
                 </div>
             @endif
         </div>
@@ -42,9 +41,26 @@
                 <p class="text-sm text-slate-300">Price</p>
                 <p class="mt-1 text-2xl font-extrabold">{{ number_format((float) $product->price, $product->priceDecimals()) }} {{ $product->currency }}{{ $product->priceSuffix() }}</p>
             </div>
+            @if($product->isAvailable() && $product->type === 'smm_service')
+                <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4" data-product-quote
+                     data-unit-price="{{ (float) $product->price }}"
+                     data-pricing-unit="{{ $product->pricingUnit() }}"
+                     data-currency="{{ $product->currency ?: 'XAF' }}"
+                     data-decimals="{{ $product->priceDecimals() }}"
+                     data-min="{{ (int) ($product->min_order ?? 1) }}"
+                     data-max="{{ $product->max_order ? (int) $product->max_order : 1000000 }}">
+                    <label class="text-sm font-bold text-brand-text" for="product-quantity">Enter Amount</label>
+                    <input id="product-quantity" type="number" min="{{ (int) ($product->min_order ?? 1) }}" max="{{ $product->max_order ? (int) $product->max_order : 1000000 }}" value="{{ (int) ($product->min_order ?? 1) }}" class="mt-3 w-full rounded-xl border-slate-300 bg-white px-4 py-3">
+                    <div class="mt-4 flex items-center justify-between gap-4 rounded-xl bg-white p-3">
+                        <div><p class="text-xs text-brand-muted">Estimated total</p><p id="product-total" class="text-lg font-extrabold text-brand-navy">—</p></div>
+                        <div class="text-right"><p class="text-xs text-brand-muted">Price</p><p class="text-sm font-bold text-brand-navy">{{ number_format((float) $product->price, $product->priceDecimals()) }} {{ $product->currency ?: 'XAF' }}{{ $product->priceSuffix() }}</p></div>
+                    </div>
+                    <p class="mt-2 text-xs text-brand-muted">Min {{ number_format($product->min_order ?? 1) }} · Max {{ $product->max_order ? number_format($product->max_order) : 'Unlimited' }}{{ $product->isPer1000() ? ' · priced per 1,000' : '' }}</p>
+                </div>
+            @endif
             @if($product->isAvailable())
                 @auth
-                    <a href="{{ route('dashboard.orders.create', $product) }}" class="mt-5 block rounded-xl bg-brand-teal px-5 py-3 text-center text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Purchase now</a>
+                    <a id="purchase-now" href="{{ route('dashboard.orders.create', $product) }}" class="mt-5 block rounded-xl bg-brand-teal px-5 py-3 text-center text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Purchase now</a>
                 @else
                     <a href="{{ route('login') }}" class="mt-5 block rounded-xl bg-brand-teal px-5 py-3 text-center text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Sign in to purchase</a>
                     <a href="{{ route('register') }}" class="mt-3 block rounded-xl border border-slate-200 px-5 py-3 text-center text-sm font-bold text-brand-navy hover:bg-slate-50">Create account</a>
@@ -74,5 +90,47 @@
             </div>
         </div>
     @endif
+
+<script>
+(function () {
+    const quote = document.querySelector('[data-product-quote]');
+    if (!quote) return;
+    const quantity = document.getElementById('product-quantity');
+    const total = document.getElementById('product-total');
+    const purchase = document.getElementById('purchase-now');
+    if (!quantity || !total) return;
+
+    const unitPrice = parseFloat(quote.dataset.unitPrice || '0');
+    const currency = quote.dataset.currency || 'XAF';
+    const per1000 = quote.dataset.pricingUnit === 'per_1000';
+    const decimals = parseInt(quote.dataset.decimals || '0', 10);
+
+    function format(value) {
+        return value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + ' ' + currency;
+    }
+
+    function currentTotal() {
+        const qty = Math.max(0, parseInt(quantity.value || '0', 10) || 0);
+        return per1000 ? (unitPrice * qty) / 1000 : unitPrice * qty;
+    }
+
+    function update() {
+        const qty = Math.max(0, parseInt(quantity.value || '0', 10) || 0);
+        total.textContent = qty > 0 ? format(currentTotal()) : '—';
+        if (purchase) {
+            const url = new URL(purchase.href, window.location.origin);
+            if (qty > 0) {
+                url.searchParams.set('quantity', String(qty));
+            } else {
+                url.searchParams.delete('quantity');
+            }
+            purchase.href = url.pathname + url.search + url.hash;
+        }
+    }
+
+    quantity.addEventListener('input', update);
+    update();
+})();
+</script>
 </section>
 @endsection

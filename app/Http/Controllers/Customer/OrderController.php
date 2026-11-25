@@ -6,18 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Product;
 use App\Services\OrderService;
+use App\Services\WalletService;
 use Illuminate\Http\Request;
 use RuntimeException;
 
 class OrderController extends Controller
 {
-    public function create(Product $product)
+    public function create(Request $request, Product $product, WalletService $wallets)
     {
         abort_unless($product->isActiveForPurchase(), 404);
+
+        $min = (int) ($product->min_order ?? 1);
+        $max = $product->max_order ? (int) $product->max_order : null;
+        $quantity = $request->integer('quantity', $min);
+        if ($quantity < $min || ($max !== null && $quantity > $max)) {
+            $quantity = $min;
+        }
 
         return view('customer.orders.create', [
             'product' => $product->load('category'),
             'countries' => Country::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'wallet' => $wallets->walletFor($request->user()),
+            'initialQuantity' => $quantity,
         ]);
     }
 

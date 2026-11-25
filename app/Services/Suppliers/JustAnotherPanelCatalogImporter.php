@@ -128,8 +128,8 @@ class JustAnotherPanelCatalogImporter
                     'type' => 'smm_service',
                     'name' => Str::limit($displayName, 180, ''),
                     'summary' => Str::limit($displayName, 500, ''),
-                    'description' => $this->description($service, $brand, $rate, $usdXafRate, $markup),
-                    'terms' => 'Delivery time, refill eligibility and cancellation rules are controlled by the JustAnotherPanel service configuration.',
+                    'description' => $this->description($service, $brand, $displayName),
+                    'terms' => 'Delivery time, refill eligibility and cancellation rules depend on the selected service. Check the service details before ordering.',
                     'price' => $existing?->price ?? $price,
                     'currency' => 'XAF',
                     'supplier_cost' => $supplierCost,
@@ -293,22 +293,8 @@ class JustAnotherPanelCatalogImporter
         return bcadd(bcmul(bcmul($rate, $multiplier, 6), $usdXaf, 6), '0', 2);
     }
 
-    private function description(array $service, array $brand, float $rate, float $usdXafRate, float $markup): string
+    private function description(array $service, array $brand, string $displayName): string
     {
-        $lines = [
-            'Imported from JustAnotherPanel service '.$service['service'].'.',
-            'Brand: '.$brand['label'].'.',
-            'Supplier category: '.($service['category'] ?? 'Uncategorized').'.',
-            'Service type: '.($service['type'] ?? 'Default').'.',
-            'Supplier rate: '.number_format($rate, 4).' USD per 1,000.',
-            'Retail basis: +'.number_format($markup, 2).'% over supplier rate at '.number_format($usdXafRate, 2).' XAF/USD.',
-            'Minimum order: '.($service['min'] ?? 1).'.',
-            'Maximum order: '.(($service['max'] ?? 0) > 0 ? $service['max'] : 'Unlimited').'.',
-            'Drip-feed: '.(! empty($service['dripfeed']) ? 'yes' : 'no').'.',
-            'Refill: '.(! empty($service['refill']) ? 'yes' : 'no').'.',
-            'Cancel: '.(! empty($service['cancel']) ? 'yes' : 'no').'.',
-        ];
-
-        return implode("\n", $lines);
+        return $brand['label'].' '.$displayName.' service. Delivery time, refill eligibility and cancellation rules depend on the selected service and are shown before ordering.';
     }
 }

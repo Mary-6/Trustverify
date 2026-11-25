@@ -144,10 +144,17 @@ class VerificationFlowTest extends TestCase
     {
         $user = User::factory()->create();
 
+        config([
+            'fapshi.enabled' => true,
+            'fapshi.api_user' => 'api-user',
+            'fapshi.api_key' => 'api-key',
+        ]);
+
         $this->actingAs($user)->get(route('dashboard.overview'))
             ->assertOk()
             ->assertSee('Account management')
-            ->assertSee('Add Money')
+            ->assertSee('Deposit')
+            ->assertDontSee('Add Money')
             ->assertDontSee('API for resellers')
             ->assertDontSee('Support tickets')
             ->assertDontSee('Open tickets');

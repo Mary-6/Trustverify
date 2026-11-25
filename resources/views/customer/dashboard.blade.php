@@ -1,6 +1,6 @@
 @extends('layouts.account')
 
-@section('title', 'Account | TrustVerifySMS')
+@section('title', 'Profile | TrustVerifySMS')
 
 @section('content')
 @php
@@ -15,7 +15,7 @@
             <div class="flex min-w-0 items-center gap-4">
                 <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-teal text-xl font-extrabold text-brand-navy">{{ $initials ?: 'TV' }}</span>
                 <div class="min-w-0">
-                    <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Account</p>
+                    <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Profile</p>
                     <h1 class="mt-1 truncate text-2xl font-extrabold sm:text-3xl">{{ $user->name }}</h1>
                     <p class="mt-1 truncate text-sm text-slate-300">{{ $user->email }}</p>
                 </div>
@@ -29,7 +29,7 @@
                 </div>
                 <div class="flex flex-col gap-2 sm:flex-row lg:flex-col">
                     <a href="{{ route('services.index') }}" class="inline-flex items-center justify-center rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Order</a>
-                    <a href="{{ route('dashboard.wallet.index') }}#add-funds" class="inline-flex items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">Add Money</a>
+                    <a href="{{ route('dashboard.wallet.index') }}#add-funds" class="inline-flex items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">Deposit</a>
                 </div>
             </div>
         </div>

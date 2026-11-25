@@ -54,8 +54,8 @@ class ProductController extends Controller
         ];
 
         if ($detail) {
-            $data['description'] = $product->description;
-            $data['terms'] = $product->terms;
+            $data['description'] = $product->customerDescription();
+            $data['terms'] = $product->customerTerms();
         }
 
         return $data;

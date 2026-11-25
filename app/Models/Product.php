@@ -94,6 +94,41 @@ class Product extends Model
         return CountryFilter::isCountrySpecific(implode(' ', $parts));
     }
 
+    public function customerDescription(): ?string
+    {
+        return $this->sanitizeCustomerText($this->description);
+    }
+
+    public function customerTerms(): ?string
+    {
+        return $this->sanitizeCustomerText($this->terms);
+    }
+
+    private function sanitizeCustomerText(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        $safe = [];
+        foreach (preg_split('/\r\n|\r|\n/', $value) ?: [] as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+            if (preg_match('/^imported from\b/i', $line) || preg_match('/^(brand|service type|retail basis|minimum order|max(?:imum)? order|drip-feed|refill|cancel|start time|speed|supplier mode|supplier category|supplier rate|supplier)\s*:/i', $line)) {
+                continue;
+            }
+            if (preg_match('/(justanotherpanel|textverified|herosms|faussms)/i', $line)) {
+                continue;
+            }
+            $safe[] = $line;
+        }
+
+        return $safe === [] ? null : implode("\n", $safe);
+    }
+
     public function estimatedDelivery(): ?string
     {
         $meta = $this->meta ?? [];

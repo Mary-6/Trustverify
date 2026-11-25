@@ -58,6 +58,26 @@ class FapshiPaymentTest extends TestCase
         $this->assertNotEmpty($payment->payload['external_id']);
     }
 
+    public function test_deposit_requires_fapshi_and_does_not_create_manual_payment(): void
+    {
+        config([
+            'fapshi.enabled' => false,
+            'fapshi.api_user' => null,
+            'fapshi.api_key' => null,
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('dashboard.wallet.deposit'), [
+            'amount' => 1000,
+            'method' => 'mtn_momo',
+            'phone' => '670000000',
+            'idempotency_key' => 'deposit-manual-blocked',
+        ])->assertSessionHas('error');
+
+        $this->assertSame(0, Payment::count());
+    }
+
     public function test_fapshi_webhook_credits_wallet_once_after_verification(): void
     {
         $this->configureFapshi();

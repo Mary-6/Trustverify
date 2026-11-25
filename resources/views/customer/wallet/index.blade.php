@@ -12,9 +12,10 @@
 
     <div class="grid gap-6 lg:grid-cols-[420px_1fr]">
         <div id="add-funds" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="text-xl font-extrabold text-brand-navy">Add funds</h2>
-            <p class="mt-2 text-sm text-brand-muted">Submit a deposit request. Wallet credit is applied only after payment verification.</p>
+            <h2 class="text-xl font-extrabold text-brand-navy">Deposit</h2>
+            <p class="mt-2 text-sm text-brand-muted">Submit a deposit request. MTN MoMo deposits are credited automatically after payment confirmation.</p>
 
+            @if(count($paymentMethods) > 0)
             <form method="POST" action="{{ route('dashboard.wallet.deposit') }}" class="mt-5 space-y-4">
                 @csrf
                 <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $depositKey) }}">
@@ -48,8 +49,11 @@
                     <label class="text-sm font-bold text-brand-text" for="reference_note">Note</label>
                     <textarea id="reference_note" name="reference_note" rows="2" class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3" placeholder="Payment reference or note">{{ old('reference_note') }}</textarea>
                 </div>
-                <button class="w-full rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Submit deposit request</button>
+                <button class="w-full rounded-xl bg-brand-teal px-5 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Deposit</button>
             </form>
+            @else
+                <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-brand-bg p-5 text-sm text-brand-muted">Deposits are temporarily unavailable. Please try again later.</div>
+            @endif
         </div>
 
         <div class="space-y-6">

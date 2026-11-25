@@ -41,7 +41,7 @@ class WalletController extends Controller
         $wallet = app(WalletService::class)->walletFor($user);
         $amount = (int) $data['amount'];
         $method = $data['method'];
-        $useFapshi = in_array($method, ['mtn_momo', 'orange_money'], true) && $fapshi->isConfigured();
+        $useFapshi = $fapshi->isConfigured();
         $idempotencyKey = 'deposit-'.$user->id.'-'.($data['idempotency_key'] ?: (string) Str::uuid());
 
         $existing = Payment::where('idempotency_key', $idempotencyKey)->first();
@@ -52,6 +52,10 @@ class WalletController extends Controller
             }
 
             return back()->with('status', 'Deposit request already submitted.');
+        }
+
+        if (! $useFapshi) {
+            return back()->with('error', 'Deposits are temporarily unavailable. Please try again later.')->withInput();
         }
 
         if ($useFapshi) {
@@ -93,19 +97,6 @@ class WalletController extends Controller
             return redirect()->away($result['link']);
         }
 
-        Payment::create([
-            'user_id' => $user->id,
-            'wallet_id' => $wallet->id,
-            'amount' => $amount,
-            'currency' => $wallet->currency,
-            'gateway' => $method,
-            'reference' => 'DEP-'.strtoupper(Str::random(10)),
-            'status' => Payment::STATUS_PENDING,
-            'idempotency_key' => $idempotencyKey,
-            'payload' => ['phone' => $data['phone'] ?? null, 'note' => $data['reference_note'] ?? null],
-        ]);
-
-        return back()->with('status', 'Deposit request submitted. Wallet credit is applied only after verification.');
     }
 
     private function enabledPaymentMethods(): array
@@ -115,6 +106,10 @@ class WalletController extends Controller
 
     private function paymentMethodOptions(): array
     {
+        if (! app(FapshiGateway::class)->isConfigured()) {
+            return [];
+        }
+
         $labels = [
             'mtn_momo' => 'MTN Mobile Money',
             'orange_money' => 'Orange Money',

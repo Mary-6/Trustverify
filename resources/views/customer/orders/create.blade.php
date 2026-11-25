@@ -18,6 +18,14 @@
         <p class="mt-2 text-brand-muted">{{ $product->summary }}</p>
     </div>
 
+    <div class="flex flex-col gap-3 rounded-2xl border border-brand-teal/30 bg-brand-teal-soft p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-brand-muted">Wallet balance</p>
+            <p class="mt-1 text-2xl font-extrabold text-brand-navy">{{ number_format((float) $wallet->balance, 0) }} {{ $wallet->currency }}</p>
+        </div>
+        <a href="{{ route('dashboard.wallet.index') }}#add-funds" class="inline-flex items-center justify-center rounded-xl bg-brand-navy px-5 py-3 text-sm font-extrabold text-white hover:bg-brand-navy-light">Deposit</a>
+    </div>
+
     <div class="flex flex-wrap gap-2 text-xs font-bold" aria-label="Order progress">
         <span data-step-chip="1" class="rounded-full px-3 py-1">1 · Service selected</span>
         <span data-step-chip="2" class="rounded-full px-3 py-1">2 · Quantity & details</span>
@@ -68,7 +76,7 @@
                             @endforeach
                         </div>
                     @endif
-                    <input id="quantity" name="quantity" type="number" min="{{ $product->min_order ?? 1 }}" max="{{ $product->max_order ?? 1000000 }}" value="{{ old('quantity', $product->min_order ?? 1) }}" required class="mt-3 w-full rounded-xl border-slate-300 px-4 py-3">
+                    <input id="quantity" name="quantity" type="number" min="{{ $product->min_order ?? 1 }}" max="{{ $product->max_order ?? 1000000 }}" value="{{ old('quantity', $initialQuantity ?? ($product->min_order ?? 1)) }}" required class="mt-3 w-full rounded-xl border-slate-300 px-4 py-3">
                     @error('quantity')<p class="mt-1 text-sm text-brand-error">{{ $message }}</p>@enderror
                 </div>
                 @else

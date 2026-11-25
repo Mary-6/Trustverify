@@ -247,6 +247,56 @@ class MarketplaceTest extends TestCase
         $this->assertSame(0, Order::count());
     }
 
+    public function test_product_page_hides_supplier_internals_and_prefills_amount(): void
+    {
+        $instagram = Category::create([
+            'name' => 'Instagram',
+            'slug' => 'instagram',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $product = Product::create([
+            'name' => 'Instagram Followers Privacy Test',
+            'type' => 'smm_service',
+            'category_id' => $instagram->id,
+            'summary' => 'Clean Instagram followers.',
+            'description' => "Imported from JustAnotherPanel service 5793.\nBrand: Instagram.\nSupplier category: Instagram Services [WORLD].\nSupplier rate: 0.1140 USD per 1,000.\nRetail basis: +30.00% over supplier rate at 597.85 XAF/USD.\nMinimum order: 50.\nMaximum order: 1000.\nCustomer-safe Instagram follower service.",
+            'terms' => 'Delivery time, refill eligibility and cancellation rules are controlled by the JustAnotherPanel service configuration.',
+            'meta' => ['pricing_unit' => 'per_1000', 'supplier_category' => 'Instagram Services [WORLD]'],
+            'price' => 1000,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'justanotherpanel',
+            'status' => 'active',
+            'is_active' => true,
+            'min_order' => 50,
+            'max_order' => 1000,
+        ]);
+
+        $this->assertSame('Customer-safe Instagram follower service.', $product->customerDescription());
+        $this->assertNull($product->customerTerms());
+
+        $this->get(route('services.show', $product))
+            ->assertOk()
+            ->assertSee('Customer-safe Instagram follower service.')
+            ->assertSee('Enter Amount')
+            ->assertSee('product-quantity')
+            ->assertSee('Estimated total')
+            ->assertDontSee('Supplier rate')
+            ->assertDontSee('Retail basis')
+            ->assertDontSee('Supplier category')
+            ->assertDontSee('Imported from')
+            ->assertDontSee('JustAnotherPanel')
+            ->assertDontSee('Supplier mode');
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('dashboard.orders.create', $product).'?quantity=250')
+            ->assertOk()
+            ->assertSee('value="250"', false)
+            ->assertSee('Wallet balance')
+            ->assertSee('Deposit');
+    }
+
     public function test_customer_can_purchase_with_wallet_and_idempotency_key(): void
     {
         $user = User::factory()->create();
