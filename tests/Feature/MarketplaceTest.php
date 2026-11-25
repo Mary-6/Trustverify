@@ -24,6 +24,53 @@ class MarketplaceTest extends TestCase
         $this->get('/support')->assertOk();
     }
 
+    public function test_homepage_features_at_least_one_product_per_brand(): void
+    {
+        $instagram = Category::create([
+            'name' => 'Instagram',
+            'slug' => 'instagram',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+        $whatsapp = Category::create([
+            'name' => 'WhatsApp',
+            'slug' => 'whatsapp',
+            'is_active' => true,
+            'sort_order' => 2,
+        ]);
+
+        $instagramProduct = Product::create([
+            'name' => 'Instagram Homepage Diversity Followers',
+            'type' => 'smm_service',
+            'category_id' => $instagram->id,
+            'price' => 10,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'manual',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+        $instagramProduct->created_at = now()->subDay();
+        $instagramProduct->save();
+
+        for ($i = 1; $i <= 8; $i++) {
+            Product::create([
+                'name' => 'WhatsApp Channel Followers Showcase '.$i,
+                'type' => 'smm_service',
+                'category_id' => $whatsapp->id,
+                'price' => 10,
+                'currency' => 'XAF',
+                'supplier_adapter' => 'manual',
+                'status' => 'active',
+                'is_active' => true,
+            ]);
+        }
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Instagram Homepage Diversity Followers')
+            ->assertSee('WhatsApp Channel Followers Showcase');
+    }
+
     public function test_services_page_hides_unavailable_services(): void
     {
         $instagram = Category::create([
@@ -96,6 +143,63 @@ class MarketplaceTest extends TestCase
             ->assertDontSee('Long-term Numbers')
             ->assertDontSee('eSIM Marketplace')
             ->assertDontSee('Other Digital Products');
+    }
+
+    public function test_smm_group_returns_high_and_low_quality_options(): void
+    {
+        $instagram = Category::create([
+            'name' => 'Instagram',
+            'slug' => 'instagram',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        Product::create([
+            'name' => 'Instagram Followers HQ Real',
+            'type' => 'smm_service',
+            'category_id' => $instagram->id,
+            'price' => 100,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'manual',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+        Product::create([
+            'name' => 'Instagram Followers Random Cheap',
+            'type' => 'smm_service',
+            'category_id' => $instagram->id,
+            'price' => 10,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'manual',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+        Product::create([
+            'name' => 'Instagram Followers [Thailand] HQ',
+            'type' => 'smm_service',
+            'category_id' => $instagram->id,
+            'price' => 5,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'manual',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $this->getJson('/services/smm-products?brand=instagram&group=followers')
+            ->assertOk()
+            ->assertJsonCount(2, 'products')
+            ->assertJsonPath('products.0.name', 'Instagram Followers HQ Real')
+            ->assertJsonPath('products.0.quality', 'high')
+            ->assertJsonPath('products.1.name', 'Instagram Followers Random Cheap')
+            ->assertJsonPath('products.1.quality', 'low');
+
+        $this->get('/services?service=smm_service&brand=instagram&group=followers')
+            ->assertOk()
+            ->assertSee('Instagram Followers HQ Real')
+            ->assertSee('Instagram Followers Random Cheap')
+            ->assertSee('High quality')
+            ->assertSee('Low quality')
+            ->assertDontSee('Thailand');
     }
 
     public function test_customer_can_purchase_with_wallet_and_idempotency_key(): void

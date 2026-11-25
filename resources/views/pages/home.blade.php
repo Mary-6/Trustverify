@@ -143,7 +143,7 @@
     <div class="mt-6 flex flex-wrap gap-3">
         @foreach($brandStats as $brand)
             <a href="{{ route('services.index', ['service' => 'smm_service', 'brand' => $brand['slug']]) }}" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-brand-navy shadow-sm hover:border-brand-teal/60 hover:text-brand-teal">
-                <img src="https://cdn.simpleicons.org/{{ $brand['slug'] }}" alt="{{ $brand['name'] }} logo" class="h-4 w-4" loading="lazy">
+                <img src="https://cdn.simpleicons.org/{{ $brand['logo'] ?? $brand['slug'] }}" alt="{{ $brand['name'] }} logo" class="h-4 w-4" loading="lazy">
                 {{ $brand['name'] }}
             </a>
         @endforeach
@@ -157,7 +157,7 @@
                 <a href="{{ route('services.show', $product) }}" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                     <div class="flex items-start justify-between gap-3">
                         <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-teal">
-                            @if($product->category?->slug)<img src="https://cdn.simpleicons.org/{{ $product->category->slug }}" alt="{{ $product->category?->name }} logo" class="h-4 w-4" loading="lazy">@endif
+                            @if($product->category?->slug)<img src="https://cdn.simpleicons.org/{{ data_get(\App\Support\ServiceCatalogue::brands(), $product->category->slug.'.logo', $product->category->slug) }}" alt="{{ $product->category?->name }} logo" class="h-4 w-4" loading="lazy">@endif
                             <span>{{ $product->category?->name ?? 'SMM Service' }}</span>
                         </p>
                         <span class="rounded-full bg-brand-teal-soft px-2 py-1 text-xs font-bold text-brand-navy">Live</span>
@@ -253,56 +253,55 @@
         <p class="mt-3 text-brand-muted">MTN Mobile Money is available now. Other payment methods are coming soon.</p>
     </div>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <a href="{{ route('dashboard.wallet.index') }}" class="group relative overflow-hidden rounded-2xl bg-[#FFCB05] p-4 text-brand-navy shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-            <div class="flex items-start justify-between gap-2">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 p-1.5"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/MTN%20Logo.svg?width=200" alt="MTN logo" class="h-6 w-6" loading="lazy"></span>
-                <span class="rounded-full bg-brand-navy px-2.5 py-0.5 text-[11px] font-bold text-white">Available</span>
-            </div>
-            <h3 class="mt-3 text-base font-extrabold">MTN Mobile Money</h3>
-            <p class="mt-2 text-xs leading-5 text-brand-navy/80">Top up and pay with MTN MoMo.</p>
-            <p class="mt-3 text-xs font-extrabold text-brand-navy">Top up wallet →</p>
+    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <a href="{{ route('dashboard.wallet.index') }}" class="group flex items-center gap-3 rounded-2xl bg-[#FFCB05] p-3 text-brand-navy shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/80 p-1"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/MTN%20Logo.svg?width=200" alt="MTN logo" class="h-5 w-5" loading="lazy"></span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-extrabold">MTN Mobile Money</span>
+                <span class="block truncate text-[11px] font-semibold text-brand-navy/75">Top up wallet →</span>
+            </span>
+            <span class="shrink-0 rounded-full bg-brand-navy px-2 py-0.5 text-[10px] font-bold text-white">Available</span>
         </a>
 
-        <div class="rounded-2xl bg-[#FF7900] p-4 text-white shadow-sm">
-            <div class="flex items-start justify-between gap-2">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 p-1.5"><img src="https://cdn.simpleicons.org/orange/ffffff" alt="Orange logo" class="h-5 w-5" loading="lazy"></span>
-                <span class="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold text-white">Coming soon</span>
-            </div>
-            <h3 class="mt-3 text-base font-extrabold">Orange Money</h3>
-            <p class="mt-2 text-xs leading-5 text-white/85">Mobile money in preparation.</p>
+        <div class="flex items-center gap-3 rounded-2xl bg-[#FF7900] p-3 text-white shadow-sm">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 p-1"><img src="https://cdn.simpleicons.org/orange/ffffff" alt="Orange logo" class="h-5 w-5" loading="lazy"></span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-extrabold">Orange Money</span>
+                <span class="block truncate text-[11px] font-semibold text-white/75">Mobile money soon</span>
+            </span>
+            <span class="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white">Coming soon</span>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="flex items-start justify-between gap-2">
-                <span class="flex items-center gap-1.5">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F4F6FB] p-1.5"><img src="https://cdn.simpleicons.org/visa/1A1F71" alt="Visa logo" class="h-5 w-5" loading="lazy"></span>
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F4F6FB] p-1.5"><img src="https://cdn.simpleicons.org/mastercard" alt="Mastercard logo" class="h-5 w-5" loading="lazy"></span>
-                </span>
-                <span class="rounded-full bg-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-brand-muted">Coming soon</span>
-            </div>
-            <h3 class="mt-3 text-base font-extrabold text-brand-navy">Visa / Mastercard</h3>
-            <p class="mt-2 text-xs leading-5 text-brand-muted">Card payments not enabled yet.</p>
+        <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center gap-1 rounded-xl bg-[#F4F6FB] p-1">
+                <img src="https://cdn.simpleicons.org/visa/1A1F71" alt="Visa logo" class="h-4 w-4" loading="lazy">
+                <img src="https://cdn.simpleicons.org/mastercard" alt="Mastercard logo" class="h-4 w-4" loading="lazy">
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-extrabold text-brand-navy">Visa / Mastercard</span>
+                <span class="block truncate text-[11px] font-semibold text-brand-muted">Card payments soon</span>
+            </span>
+            <span class="shrink-0 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-brand-muted">Coming soon</span>
         </div>
 
-        <div class="rounded-2xl bg-[#003087] p-4 text-white shadow-sm">
-            <div class="flex items-start justify-between gap-2">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 p-1.5"><img src="https://cdn.simpleicons.org/paypal/ffffff" alt="PayPal logo" class="h-5 w-5" loading="lazy"></span>
-                <span class="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold text-white">Coming soon</span>
-            </div>
-            <h3 class="mt-3 text-base font-extrabold">PayPal</h3>
-            <p class="mt-2 text-xs leading-5 text-white/85">PayPal deposits not enabled yet.</p>
+        <div class="flex items-center gap-3 rounded-2xl bg-[#003087] p-3 text-white shadow-sm">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 p-1"><img src="https://cdn.simpleicons.org/paypal/ffffff" alt="PayPal logo" class="h-5 w-5" loading="lazy"></span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-extrabold">PayPal</span>
+                <span class="block truncate text-[11px] font-semibold text-white/75">PayPal deposits soon</span>
+            </span>
+            <span class="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white">Coming soon</span>
         </div>
 
-        <div class="rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
-            <div class="flex items-start justify-between gap-2">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M7 15h4m4 0h4M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"/></svg>
-                </span>
-                <span class="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-bold text-white">Coming soon</span>
-            </div>
-            <h3 class="mt-3 text-base font-extrabold">Other methods</h3>
-            <p class="mt-2 text-xs leading-5 text-white/85">Additional options planned.</p>
+        <div class="flex items-center gap-3 rounded-2xl bg-brand-navy p-3 text-white shadow-sm">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M7 15h4m4 0h4M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"/></svg>
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-extrabold">Other methods</span>
+                <span class="block truncate text-[11px] font-semibold text-white/75">Additional options planned</span>
+            </span>
+            <span class="shrink-0 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-white">Coming soon</span>
         </div>
     </div>
 

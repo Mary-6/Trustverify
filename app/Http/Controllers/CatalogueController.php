@@ -89,6 +89,7 @@ class CatalogueController extends Controller
                     'max_order' => $product->max_order ? (int) $product->max_order : null,
                     'delivery' => $product->estimatedDelivery(),
                     'available' => $product->isAvailable(),
+                    'quality' => $product->smm_quality ?? null,
                     'requires_link' => $requiresLink,
                     'order_url' => route('dashboard.orders.store', $product),
                     'detail_url' => route('services.show', $product),

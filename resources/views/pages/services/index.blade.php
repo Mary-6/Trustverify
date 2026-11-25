@@ -115,6 +115,14 @@
                 const money = (value, decimals) => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 const uuid = () => (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
                 const priceText = (product) => `${money(product.price, product.decimals)} ${product.currency}${product.is_per_1000 ? ' / 1,000' : ''}`;
+                const qualityBadge = (quality) => {
+                    const badges = {
+                        high: ['High quality', 'bg-brand-teal-soft text-brand-navy'],
+                        low: ['Low quality', 'bg-brand-gold/20 text-brand-navy'],
+                    };
+                    const badge = badges[quality];
+                    return badge ? `<span class="rounded-full px-2 py-1 text-xs font-bold ${badge[1]}">${badge[0]}</span>` : '';
+                };
 
                 function show(level) {
                     Object.keys(levels).forEach((key) => levels[key].classList.toggle('hidden', key !== level));
@@ -196,7 +204,7 @@
                         const delivery = product.delivery ? `<div class="col-span-2"><span class="block text-brand-muted">Est. delivery</span><span class="font-semibold text-brand-text">${esc(product.delivery)}</span></div>` : '';
                         return `<button type="button" data-smm-product-index="${index}" class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                             <div class="flex items-start justify-between gap-3">
-                                <p class="text-xs font-bold uppercase tracking-wider text-brand-teal">${esc(currentBrand.label)}</p>
+                                <div class="flex items-center gap-2"><p class="text-xs font-bold uppercase tracking-wider text-brand-teal">${esc(currentBrand.label)}</p>${qualityBadge(product.quality)}</div>
                                 <span class="rounded-full px-2 py-1 text-xs font-bold ${product.available ? 'bg-brand-teal-soft text-brand-navy' : 'bg-slate-100 text-brand-muted'}">${product.available ? 'Available' : 'Unavailable'}</span>
                             </div>
                             <h3 class="mt-3 line-clamp-2 text-lg font-extrabold text-brand-navy">${esc(product.name)}</h3>
@@ -264,6 +272,7 @@
                         <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">${esc(currentBrand.label)} · ${esc(currentGroup ? currentGroup.label : '')}</p>
                         <h3 class="mt-1 text-2xl font-extrabold text-brand-navy">${esc(product.name)}</h3>
                         <p class="mt-2 text-sm text-brand-muted">${esc(product.summary || '')}</p>
+                        ${product.quality ? `<div class="mt-2">${qualityBadge(product.quality)}</div>` : ''}
                         ${factsHtml(product)}
                     </div>`;
 
@@ -332,7 +341,7 @@
                         @foreach($products as $product)
                             <a href="{{ route('services.show', $product) }}" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                                 <div class="flex items-start justify-between gap-3">
-                                    <p class="text-xs font-bold uppercase tracking-wider text-brand-teal">{{ $selectedBrand['label'] }}</p>
+                                    <div class="flex items-center gap-2"><p class="text-xs font-bold uppercase tracking-wider text-brand-teal">{{ $selectedBrand['label'] }}</p>@if($product->smm_quality)<span class="rounded-full px-2 py-1 text-xs font-bold {{ $product->smm_quality === 'high' ? 'bg-brand-teal-soft text-brand-navy' : 'bg-brand-gold/20 text-brand-navy' }}">{{ $product->smm_quality === 'high' ? 'High quality' : 'Low quality' }}</span>@endif</div>
                                     <span class="rounded-full px-2 py-1 text-xs font-bold {{ $product->isAvailable() ? 'bg-brand-teal-soft text-brand-navy' : 'bg-slate-100 text-brand-muted' }}">{{ $product->isAvailable() ? 'Available' : 'Unavailable' }}</span>
                                 </div>
                                 <h3 class="mt-3 line-clamp-2 text-lg font-extrabold text-brand-navy">{{ $product->name }}</h3>

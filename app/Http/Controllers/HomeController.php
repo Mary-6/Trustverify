@@ -19,6 +19,7 @@ class HomeController extends Controller
             'youtube' => 'Views, watch time, subscribers and likes to grow your channel and search ranking.',
             'telegram' => 'Channel and group members, post views and reactions for growing communities.',
             'whatsapp' => 'Channel and group growth services with clear options and tracked delivery.',
+            'x-twitter' => 'Followers, likes, views, reposts and replies for X accounts and content.',
         ];
 
         $brandStats = $rowsByBrand
@@ -44,10 +45,18 @@ class HomeController extends Controller
             ->values();
 
         $featuredProducts = $rowsByBrand
-            ->flatten(1)
-            ->sortByDesc(fn ($row) => $row['product']->created_at)
+            ->filter(fn ($rows) => $rows->isNotEmpty())
+            ->map(fn ($rows) => $rows
+                ->sortByDesc(fn ($row) => $row['product']->created_at)
+                ->first()['product'])
+            ->merge(
+                $rowsByBrand
+                    ->collapse()
+                    ->sortByDesc(fn ($row) => $row['product']->created_at)
+                    ->pluck('product')
+            )
+            ->unique(fn ($product) => $product->id)
             ->take(8)
-            ->pluck('product')
             ->values();
 
         return view('pages.home', [

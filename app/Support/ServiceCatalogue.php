@@ -90,6 +90,12 @@ class ServiceCatalogue
             }
         }
 
+        $identity = Str::lower($product->name.' '.(string) ($product->meta['supplier_service_name'] ?? ''));
+
+        if (CountryFilter::isCountrySpecific($identity)) {
+            return false;
+        }
+
         return (float) $product->price > 0;
     }
 
@@ -130,13 +136,15 @@ class ServiceCatalogue
         $summaries = [];
 
         foreach (self::groups($brand) as $slug => $definition) {
-            $matches = $rows->where('group', $slug)->sortBy(fn ($row) => (float) $row['product']->price)->values();
+            $matches = self::curateRows($rows->where('group', $slug)->values(), $brand, $slug);
+            $minPrice = $matches->isEmpty() ? null : (float) $matches->map(fn (Product $product) => (float) $product->price)->min();
+
             $summaries[$slug] = [
                 'slug' => $slug,
                 'label' => $definition['label'],
                 'description' => $definition['description'],
                 'count' => $matches->count(),
-                'min_price' => $matches->isEmpty() ? null : (float) $matches->first()['product']->price,
+                'min_price' => $minPrice,
                 'available' => $matches->isNotEmpty(),
             ];
         }
@@ -146,29 +154,112 @@ class ServiceCatalogue
 
     public static function productsForGroup(string $brand, string $group): Collection
     {
-        $products = self::catalogueRows($brand)
-            ->where('group', $group)
-            ->map(fn ($row) => $row['product'])
-            ->values();
+        $rows = self::catalogueRows($brand)->where('group', $group)->values();
 
-        $products = $products
-            ->sort(function (Product $a, Product $b) {
-                $orderA = (int) ($a->sort_order ?? 999999);
-                $orderB = (int) ($b->sort_order ?? 999999);
+        return self::curateRows($rows, $brand, $group);
+    }
 
-                if ($orderA !== $orderB) {
-                    return $orderA <=> $orderB;
-                }
-
-                return (float) $a->price <=> (float) $b->price;
-            })
-            ->values();
-
+    private static function curateRows(Collection $rows, string $brand, string $group): Collection
+    {
+        $products = self::selectQualityPair($rows->map(fn ($row) => $row['product'])->values());
         $limit = self::displayLimit($brand, $group);
 
         return $products
             ->when($limit !== null, fn (Collection $items) => $items->take($limit))
             ->values();
+    }
+
+    private static function selectQualityPair(Collection $products): Collection
+    {
+        $products = $products->values();
+
+        if ($products->isEmpty()) {
+            return collect();
+        }
+
+        if ($products->count() === 1) {
+            return $products;
+        }
+
+        $scored = $products->map(fn (Product $product) => [
+            'product' => $product,
+            'score' => self::qualityScore($product),
+            'price' => (float) $product->price,
+            'sort' => (int) ($product->sort_order ?? 999999),
+            'id' => (int) $product->id,
+        ])->values();
+
+        $high = $scored->sort(function (array $a, array $b) {
+            if ($a['score'] !== $b['score']) {
+                return $b['score'] <=> $a['score'];
+            }
+
+            if ($a['price'] !== $b['price']) {
+                return $b['price'] <=> $a['price'];
+            }
+
+            if ($a['sort'] !== $b['sort']) {
+                return $a['sort'] <=> $b['sort'];
+            }
+
+            return $a['id'] <=> $b['id'];
+        })->first();
+
+        $low = $scored
+            ->reject(fn (array $row) => $row['product']->id === $high['product']->id)
+            ->sort(function (array $a, array $b) {
+                if ($a['price'] !== $b['price']) {
+                    return $a['price'] <=> $b['price'];
+                }
+
+                if ($a['score'] !== $b['score']) {
+                    return $a['score'] <=> $b['score'];
+                }
+
+                if ($a['sort'] !== $b['sort']) {
+                    return $a['sort'] <=> $b['sort'];
+                }
+
+                return $a['id'] <=> $b['id'];
+            })
+            ->first();
+
+        $high['product']->setAttribute('smm_quality', 'high');
+        $low['product']->setAttribute('smm_quality', 'low');
+
+        return collect([$high['product'], $low['product']])->values();
+    }
+
+    private static function qualityScore(Product $product): int
+    {
+        $text = Str::lower($product->name.' '.(string) ($product->meta['supplier_service_name'] ?? ''));
+        $score = 0;
+
+        if (preg_match('/\b(hq|high quality|premium|real|genuine|organic)\b/', $text)) {
+            $score += 6;
+        }
+
+        if (preg_match('/\b(no drop|zero drop|non drop|stable)\b/', $text)) {
+            $score += 3;
+        }
+
+        if (($product->meta['refill'] ?? null) === true || preg_match('/refill:\s*(yes|lifetime|[0-9]+\s*d)/', $text)) {
+            $score += 2;
+        }
+
+        if (preg_match('/\b(random|cheap|budget|economy|low cost)\b/', $text)) {
+            $score -= 4;
+        }
+
+        if (preg_match('/\b(drop|drip|slow)\b/', $text) && ! preg_match('/\b(no drop|zero drop|non drop)\b/', $text)) {
+            $score -= 3;
+        }
+
+        if ((($product->meta['refill'] ?? null) === false) || preg_match('/\b(refill:\s*no|no refill|non refill|without refill)\b/', $text)) {
+            $score -= 2;
+        }
+
+        return $score;
     }
 
     public static function displayLimit(string $brand, string $group): ?int
