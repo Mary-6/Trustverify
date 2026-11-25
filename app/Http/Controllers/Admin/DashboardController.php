@@ -35,7 +35,7 @@ class DashboardController extends Controller
                 'supplier_failures' => SupplierLog::where('status', 'failed')->count(),
             ],
             'providers' => $suppliers->providers(),
-            'recentOrders' => Order::with(['user', 'product'])->latest()->limit(10)->get(),
+            'recentOrders' => Order::with(['user', 'product'])->latest('id')->limit(10)->get(),
         ]);
     }
 

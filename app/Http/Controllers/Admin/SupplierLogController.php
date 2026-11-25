@@ -13,7 +13,7 @@ class SupplierLogController extends Controller
         $logs = SupplierLog::with('order')
             ->when($request->filled('supplier'), fn ($q) => $q->where('supplier', $request->string('supplier')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
-            ->latest()
+            ->latest('id')
             ->paginate(30)
             ->withQueryString();
 

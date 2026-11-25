@@ -64,11 +64,11 @@ class SupplierStatusService
         $logs = fn () => SupplierLog::query()
             ->where(fn ($query) => $query->where('supplier', $key)->orWhere('adapter', $key));
 
-        $lastRequest = $logs()->latest()->first();
-        $lastSuccess = $logs()->where('status', 'success')->latest()->first();
-        $lastSync = $logs()->where('action', 'catalog.sync')->where('status', 'success')->latest()->first();
-        $lastError = $logs()->where('status', 'failed')->latest()->first();
-        $testLog = $logs()->where('action', 'connection.test')->latest()->first();
+        $lastRequest = $logs()->latest('id')->first();
+        $lastSuccess = $logs()->where('status', 'success')->latest('id')->first();
+        $lastSync = $logs()->where('action', 'catalog.sync')->where('status', 'success')->latest('id')->first();
+        $lastError = $logs()->where('status', 'failed')->latest('id')->first();
+        $testLog = $logs()->where('action', 'connection.test')->latest('id')->first();
 
         $connectionStatus = $this->connectionStatus($configured, $enabled, $balance, $balanceStatus, $testLog);
 
