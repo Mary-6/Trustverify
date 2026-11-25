@@ -21,7 +21,10 @@ class ProductController extends Controller
             ->paginate(min((int) $request->integer('per_page', 25), 100));
 
         return response()->json([
-            'data' => $products->getCollection()->map(fn (Product $product) => $this->present($product)),
+            'data' => $products->getCollection()
+                ->reject(fn (Product $product) => $product->isCountrySpecificSmm())
+                ->values()
+                ->map(fn (Product $product) => $this->present($product)),
             'meta' => ['current_page' => $products->currentPage(), 'last_page' => $products->lastPage(), 'total' => $products->total()],
         ]);
     }

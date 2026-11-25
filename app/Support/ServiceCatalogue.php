@@ -90,9 +90,7 @@ class ServiceCatalogue
             }
         }
 
-        $identity = Str::lower($product->name.' '.(string) ($product->meta['supplier_service_name'] ?? ''));
-
-        if (CountryFilter::isCountrySpecific($identity)) {
+        if ($product->isCountrySpecificSmm()) {
             return false;
         }
 

@@ -440,6 +440,7 @@ class SupplierAdaptersTest extends TestCase
                     ['service' => 123, 'name' => 'Instagram Followers', 'rate' => 1, 'type' => 'Default', 'category' => 'Instagram', 'min' => 1, 'max' => 1000],
                     ['service' => 456, 'name' => 'Facebook Group Members [THAILAND]', 'rate' => 1, 'type' => 'Default', 'category' => 'Facebook', 'min' => 1, 'max' => 1000],
                     ['service' => 789, 'name' => 'Youtube Likes [RUSSIAN]', 'rate' => 1, 'type' => 'Default', 'category' => 'YouTube', 'min' => 1, 'max' => 1000],
+                    ['service' => 999, 'name' => 'Instagram Followers Clean', 'rate' => 1, 'type' => 'Default', 'category' => 'Instagram Services [EGYPT / ARABS]', 'min' => 1, 'max' => 1000],
                 ]);
             }
 
@@ -454,7 +455,7 @@ class SupplierAdaptersTest extends TestCase
 
         $this->assertSame(1, $result['matched']);
         $this->assertSame(1, $result['imported']);
-        $this->assertSame(2, $result['country_specific']);
+        $this->assertSame(3, $result['country_specific']);
         $this->assertSame(0, Product::count());
     }
 

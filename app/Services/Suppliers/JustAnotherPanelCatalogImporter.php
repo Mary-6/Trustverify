@@ -49,7 +49,7 @@ class JustAnotherPanelCatalogImporter
                 continue;
             }
 
-            if (CountryFilter::isCountrySpecific($supplierName)) {
+            if (CountryFilter::isCountrySpecific($supplierName.' '.(string) ($service['category'] ?? ''))) {
                 $countrySpecific++;
 
                 continue;
@@ -199,10 +199,10 @@ class JustAnotherPanelCatalogImporter
         $products = Product::query()
             ->where('supplier_adapter', 'justanotherpanel')
             ->whereNotNull('supplier_product_id')
-            ->get(['id', 'supplier_product_id', 'status', 'is_active', 'name', 'meta']);
+            ->get(['id', 'supplier_product_id', 'status', 'is_active', 'name', 'summary', 'description', 'type', 'meta']);
 
         $missing = $products->reject(fn (Product $product) => $availableIds->has((string) $product->supplier_product_id));
-        $countrySpecific = $products->filter(fn (Product $product) => CountryFilter::isCountrySpecific(((string) $product->name).' '.(string) (($product->meta ?? [])['supplier_service_name'] ?? '')));
+        $countrySpecific = $products->filter(fn (Product $product) => $product->isCountrySpecificSmm());
         $archivable = fn (Product $product) => $product->is_active || $product->status !== 'archived';
         $toArchive = $missing->filter($archivable)
             ->merge($countrySpecific->filter($archivable))

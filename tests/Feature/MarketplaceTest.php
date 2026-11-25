@@ -202,6 +202,51 @@ class MarketplaceTest extends TestCase
             ->assertDontSee('Thailand');
     }
 
+    public function test_country_specific_smm_metadata_is_hidden_and_not_purchasable(): void
+    {
+        $instagram = Category::create([
+            'name' => 'Instagram',
+            'slug' => 'instagram',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $product = Product::create([
+            'name' => 'Instagram Followers Clean Global',
+            'type' => 'smm_service',
+            'category_id' => $instagram->id,
+            'summary' => 'Clean global Instagram followers.',
+            'description' => 'Supplier category: Instagram Services [EGYPT / ARABS].',
+            'meta' => [
+                'supplier_service_name' => 'Instagram Followers Clean Global',
+                'supplier_category' => 'Instagram Services [EGYPT / ARABS]',
+            ],
+            'price' => 100,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'justanotherpanel',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $this->assertTrue($product->isCountrySpecificSmm());
+        $this->assertFalse($product->isActiveForPurchase());
+
+        $this->getJson('/services/smm-products?brand=instagram&group=followers')
+            ->assertOk()
+            ->assertJsonCount(0, 'products');
+
+        $this->get(route('services.show', $product))->assertNotFound();
+
+        $user = User::factory()->create();
+        $this->actingAs($user)->get(route('dashboard.orders.create', $product))->assertNotFound();
+        $this->actingAs($user)->post(route('dashboard.orders.store', $product), [
+            'quantity' => 10,
+            'idempotency_key' => 'country-specific-order',
+        ])->assertNotFound();
+
+        $this->assertSame(0, Order::count());
+    }
+
     public function test_customer_can_purchase_with_wallet_and_idempotency_key(): void
     {
         $user = User::factory()->create();

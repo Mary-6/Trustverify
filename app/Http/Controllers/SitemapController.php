@@ -18,7 +18,8 @@ class SitemapController extends Controller
 
         $products = Product::active()
             ->latest('updated_at')
-            ->get(['id', 'updated_at'])
+            ->get(['id', 'type', 'name', 'summary', 'description', 'meta', 'updated_at'])
+            ->reject(fn (Product $product) => $product->isCountrySpecificSmm())
             ->map(fn (Product $product) => [
                 'loc' => route('services.show', $product),
                 'lastmod' => $product->updated_at?->toDateString(),

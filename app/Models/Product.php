@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CountryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -74,7 +75,23 @@ class Product extends Model
 
     public function isActiveForPurchase(): bool
     {
-        return $this->isAvailable();
+        return $this->isAvailable() && ! $this->isCountrySpecificSmm();
+    }
+
+    public function isCountrySpecificSmm(): bool
+    {
+        if ($this->type !== 'smm_service') {
+            return false;
+        }
+
+        $parts = array_filter([
+            (string) $this->name,
+            (string) $this->summary,
+            (string) $this->description,
+            (string) json_encode($this->meta ?? []),
+        ]);
+
+        return CountryFilter::isCountrySpecific(implode(' ', $parts));
     }
 
     public function estimatedDelivery(): ?string

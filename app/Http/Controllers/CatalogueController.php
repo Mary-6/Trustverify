@@ -51,6 +51,7 @@ class CatalogueController extends Controller
     public function show(Product $product)
     {
         abort_unless($product->is_active && $product->status === 'active', 404);
+        abort_if($product->isCountrySpecificSmm(), 404);
 
         $product->load('category');
 
@@ -60,8 +61,11 @@ class CatalogueController extends Controller
             'related' => Product::active()->where('id', '!=', $product->id)
                 ->where('type', $product->type)
                 ->latest('id')
-                ->limit(6)
-                ->get(),
+                ->limit(30)
+                ->get()
+                ->reject(fn (Product $related) => $related->isCountrySpecificSmm())
+                ->take(6)
+                ->values(),
         ]);
     }
 
