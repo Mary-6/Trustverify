@@ -28,16 +28,10 @@
             @if(empty($apps))
                 <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-brand-muted">No verification apps are available right now.</div>
             @else
-                <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div class="mt-5 flex flex-wrap gap-3">
                     @foreach($apps as $app)
-                        <button type="button" class="verification-app group relative overflow-hidden rounded-3xl p-6 text-left text-white shadow-sm transition hover:-translate-y-1 hover:shadow-2xl" data-app="{{ $app['slug'] }}" style="background: {{ $app['gradient'] ?? $app['color'] }}">
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 p-2 backdrop-blur"><img src="https://cdn.simpleicons.org/{{ $app['logo'] }}/ffffff" alt="{{ $app['label'] }} logo" class="h-8 w-8" loading="lazy"></span>
-                                <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">{{ $app['country_count'] }} {{ $app['country_count'] === 1 ? 'country' : 'countries' }}</span>
-                            </div>
-                            <h2 class="mt-5 text-2xl font-extrabold">{{ $app['label'] }}</h2>
-                            <p class="mt-2 text-sm leading-6 text-white/85">{{ number_format($app['option_count']) }} verification option{{ $app['option_count'] === 1 ? '' : 's' }} listed.</p>
-                            <p class="mt-5 text-sm font-extrabold text-white">Choose country →</p>
+                        <button type="button" class="verification-app group flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-teal/60 hover:shadow-md" data-app="{{ $app['slug'] }}" title="{{ $app['label'] }} · {{ $app['country_count'] }} {{ $app['country_count'] === 1 ? 'country' : 'countries' }} · {{ number_format($app['option_count']) }} options" aria-label="Choose {{ $app['label'] }} for verification">
+                            <img src="https://cdn.simpleicons.org/{{ $app['logo'] }}/{{ ltrim($app['color'] ?? '#0F172A', '#') }}" alt="{{ $app['label'] }} logo" class="h-9 w-9" loading="lazy">
                         </button>
                     @endforeach
                 </div>
@@ -178,8 +172,8 @@ window.verificationLoginUrl = @js(route('login'));
         button.addEventListener('click', function () {
             state.app = button.dataset.app;
             state.country = null;
-            document.querySelectorAll('.verification-app').forEach(function (el) { el.classList.remove('ring-4', 'ring-white/70'); });
-            button.classList.add('ring-4', 'ring-white/70');
+            document.querySelectorAll('.verification-app').forEach(function (el) { el.classList.remove('ring-4', 'ring-brand-teal/30'); });
+            button.classList.add('ring-4', 'ring-brand-teal/30');
             document.getElementById('verification-selected-app').textContent = selectedApp()?.label || 'this app';
             searchEl.value = '';
             renderCountries('');
@@ -194,7 +188,7 @@ window.verificationLoginUrl = @js(route('login'));
     document.getElementById('verification-back-app').addEventListener('click', function () {
         state.app = null;
         state.country = null;
-        document.querySelectorAll('.verification-app').forEach(function (el) { el.classList.remove('ring-4', 'ring-white/70'); });
+        document.querySelectorAll('.verification-app').forEach(function (el) { el.classList.remove('ring-4', 'ring-brand-teal/30'); });
         countryStep.classList.add('hidden');
         optionStep.classList.add('hidden');
         setProgress(1);
