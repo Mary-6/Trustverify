@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\SettingsService;
+use App\Support\ServiceCatalogue;
 use Illuminate\Http\Request;
 
 class ServiceManagementController extends Controller
@@ -42,6 +43,8 @@ class ServiceManagementController extends Controller
             ->paginate(50)
             ->withQueryString();
 
+        $displayLimits = $settings->get('smm.display_limits', []);
+
         return view('admin.service-management.index', [
             'products' => $products,
             'categories' => $categories,
@@ -49,6 +52,8 @@ class ServiceManagementController extends Controller
             'supplier' => $supplier,
             'serviceLimit' => (int) $settings->get('jap.service_limit', 0),
             'state' => $state,
+            'smmBrands' => ServiceCatalogue::brands(),
+            'displayLimits' => is_array($displayLimits) ? $displayLimits : [],
         ]);
     }
 
@@ -59,10 +64,27 @@ class ServiceManagementController extends Controller
             'action' => ['nullable', 'in:activate,deactivate'],
             'selected_ids' => ['nullable', 'array', 'max:500'],
             'selected_ids.*' => ['integer', 'exists:products,id'],
+            'display_limits' => ['nullable', 'array'],
+            'display_limits.*.*' => ['nullable', 'integer', 'min:0', 'max:500'],
         ]);
 
         if ($request->has('service_limit')) {
             $settings->set('jap.service_limit', (int) ($data['service_limit'] ?? 0), 'integer', 'supplier');
+        }
+
+        if ($request->has('display_limits')) {
+            $clean = [];
+            foreach ((array) $request->input('display_limits', []) as $brand => $groups) {
+                if (! isset(ServiceCatalogue::brands()[$brand]) || ! is_array($groups)) {
+                    continue;
+                }
+                foreach ($groups as $group => $limit) {
+                    if (isset(ServiceCatalogue::groups($brand)[$group]) && is_numeric($limit) && (int) $limit > 0) {
+                        $clean[$brand][$group] = (int) $limit;
+                    }
+                }
+            }
+            $settings->set('smm.display_limits', $clean, 'json', 'catalogue');
         }
 
         $action = $data['action'] ?? null;

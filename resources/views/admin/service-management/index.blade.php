@@ -23,6 +23,30 @@
                 <button class="mt-3 w-full rounded-xl bg-brand-navy px-4 py-3 text-sm font-extrabold text-white hover:bg-brand-teal">Save JAP limit</button>
             </form>
 
+            <details class="rounded-2xl border border-slate-200 bg-white">
+                <summary class="cursor-pointer list-none px-5 py-4 font-extrabold text-brand-navy">SMM display limits</summary>
+                <form method="POST" action="{{ route('admin.service-management.update') }}" class="border-t border-slate-100 p-5">
+                    @csrf @method('PATCH')
+                    <p class="text-xs text-brand-muted">Leave blank or 0 for no limit. Limits apply per platform and category on the customer SMM page.</p>
+                    <div class="mt-4 max-h-96 space-y-4 overflow-y-auto pr-1">
+                        @foreach($smmBrands as $brandSlug => $brand)
+                            <div>
+                                <p class="text-xs font-extrabold uppercase tracking-wider text-brand-muted">{{ $brand['label'] }}</p>
+                                <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                                    @foreach(\App\Support\ServiceCatalogue::groups($brandSlug) as $groupSlug => $group)
+                                        <label class="block text-xs font-semibold text-brand-text">
+                                            {{ $group['label'] }}
+                                            <input type="number" name="display_limits[{{ $brandSlug }}][{{ $groupSlug }}]" min="0" max="500" value="{{ $displayLimits[$brandSlug][$groupSlug] ?? '' }}" class="mt-1 w-full rounded-lg border-slate-300 px-3 py-2 text-sm">
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <button class="mt-4 w-full rounded-xl bg-brand-teal px-4 py-3 text-sm font-extrabold text-brand-navy hover:bg-brand-gold">Save display limits</button>
+                </form>
+            </details>
+
             <form method="GET" action="{{ route('admin.service-management.index') }}" class="rounded-2xl border border-slate-200 bg-white p-5">
                 <h2 class="font-extrabold text-brand-navy">Filters</h2>
                 <div class="mt-3 space-y-3">

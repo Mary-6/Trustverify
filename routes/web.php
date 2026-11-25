@@ -32,6 +32,7 @@ Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [PageController::class, 'storeContact'])->middleware('throttle:6,1')->name('contact.store');
 Route::get('/services', [CatalogueController::class, 'index'])->name('services.index');
+Route::get('/services/smm-products', [CatalogueController::class, 'smmProducts'])->name('services.smm-products');
 Route::get('/services/{product}', [CatalogueController::class, 'show'])->name('services.show');
 Route::get('/verification', [VerificationController::class, 'index'])->name('verification.index');
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');

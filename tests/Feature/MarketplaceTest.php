@@ -51,14 +51,19 @@ class MarketplaceTest extends TestCase
 
         $this->get('/services?service=smm_service&brand=instagram')
             ->assertOk()
-            ->assertSee('Choose a service')
-            ->assertSee('Select the service you need on Instagram')
+            ->assertSee('Choose a category')
+            ->assertSee('Instagram services')
             ->assertSee('Followers')
             ->assertDontSee('Instagram Followers Test');
 
         $this->get('/services?service=smm_service&brand=instagram&group=followers')
             ->assertOk()
             ->assertSee('Instagram Followers Test');
+
+        $this->getJson('/services/smm-products?brand=instagram&group=followers')
+            ->assertOk()
+            ->assertJsonPath('products.0.name', 'Instagram Followers Test')
+            ->assertJsonPath('products.0.requires_link', false);
 
         $this->get('/services?service=smm_service&brand=snapchat')
             ->assertOk()

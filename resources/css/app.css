@@ -2,59 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
+.bg-brand-navy {
+    background-color: #0D3832;
+}
+
+.text-brand-gold {
+    color: #0D3832;
+}
+
+.border-slate-100,
+.border-slate-200,
+.border-slate-300 {
+    border-color: #E5ECE8;
+}
+
 .dark {
     color-scheme: dark;
 }
 
 .dark .bg-brand-bg {
-    background-color: #0B1220;
+    background-color: #071C1A;
 }
 
 .dark .bg-white {
-    background-color: #0F172A;
+    background-color: #0D3832;
 }
 
 .dark .bg-slate-50,
 .dark .bg-slate-100,
 .dark .bg-gray-50,
 .dark .bg-gray-100 {
-    background-color: #111827;
+    background-color: #10302B;
 }
 
 .dark .bg-brand-teal-soft {
-    background-color: rgba(6, 182, 212, 0.12);
+    background-color: rgba(19, 184, 154, 0.14);
 }
 
-.dark .text-brand-navy {
-    color: #F8FAFC;
+.dark .text-brand-navy,
+.dark .text-gray-900 {
+    color: #F3F7F5;
 }
 
 .dark .text-brand-text {
-    color: #E5E7EB;
+    color: #DDE9E5;
 }
 
 .dark .text-brand-muted {
-    color: #94A3B8;
+    color: #9DB8B1;
 }
 
 .dark .text-gray-600,
 .dark .text-gray-700 {
-    color: #CBD5E1;
+    color: #B7CFC7;
 }
 
-.dark .text-gray-900 {
-    color: #F8FAFC;
-}
-
+.dark .border-slate-100,
 .dark .border-slate-200,
+.dark .border-slate-300,
 .dark .border-gray-300 {
-    border-color: #1F2937;
+    border-color: #1E4A43;
 }
 
 .dark input,
 .dark select,
 .dark textarea {
-    background-color: #0B1220;
-    border-color: #1F2937;
-    color: #E5E7EB;
+    background-color: #071C1A;
+    border-color: #1E4A43;
+    color: #F3F7F5;
 }

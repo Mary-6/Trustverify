@@ -4,6 +4,7 @@ namespace App\Services\Suppliers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\CountryFilter;
 use Illuminate\Support\Str;
 
 class JustAnotherPanelCatalogImporter
@@ -26,6 +27,7 @@ class JustAnotherPanelCatalogImporter
         $imported = 0;
         $matchedByBrand = [];
         $samples = [];
+        $countrySpecific = 0;
         $categories = [];
 
         foreach ($catalog as $service) {
@@ -44,6 +46,12 @@ class JustAnotherPanelCatalogImporter
 
             $brandKey = $this->brandFor($supplierName, $brands);
             if (! $brandKey) {
+                continue;
+            }
+
+            if (CountryFilter::isCountrySpecific($supplierName)) {
+                $countrySpecific++;
+
                 continue;
             }
 
@@ -131,6 +139,7 @@ class JustAnotherPanelCatalogImporter
                     'meta' => [
                         'pricing_unit' => 'per_1000',
                         'supplier_service_name' => $supplierName,
+                        'start_time' => $service['start_time'] ?? $service['startTime'] ?? null,
                         'supplier_category' => (string) ($service['category'] ?? ''),
                         'supplier_type' => $type,
                         'supplier_rate_usd' => $rate,
@@ -159,6 +168,7 @@ class JustAnotherPanelCatalogImporter
             'matched' => $matched,
             'imported' => $imported,
             'matched_by_brand' => $matchedByBrand,
+            'country_specific' => $countrySpecific,
             'samples' => $samples,
             'dry_run' => $dryRun,
         ];
@@ -189,10 +199,15 @@ class JustAnotherPanelCatalogImporter
         $products = Product::query()
             ->where('supplier_adapter', 'justanotherpanel')
             ->whereNotNull('supplier_product_id')
-            ->get(['id', 'supplier_product_id', 'status', 'is_active']);
+            ->get(['id', 'supplier_product_id', 'status', 'is_active', 'name', 'meta']);
 
         $missing = $products->reject(fn (Product $product) => $availableIds->has((string) $product->supplier_product_id));
-        $toArchive = $missing->filter(fn (Product $product) => $product->is_active || $product->status !== 'archived');
+        $countrySpecific = $products->filter(fn (Product $product) => CountryFilter::isCountrySpecific(((string) $product->name).' '.(string) (($product->meta ?? [])['supplier_service_name'] ?? '')));
+        $archivable = fn (Product $product) => $product->is_active || $product->status !== 'archived';
+        $toArchive = $missing->filter($archivable)
+            ->merge($countrySpecific->filter($archivable))
+            ->unique('id')
+            ->values();
 
         if (! $dryRun && $toArchive->isNotEmpty()) {
             Product::query()
@@ -204,6 +219,7 @@ class JustAnotherPanelCatalogImporter
             'catalog_count' => count($catalog),
             'products' => $products->count(),
             'missing' => $missing->count(),
+            'country_specific' => $countrySpecific->count(),
             'candidates' => $toArchive->count(),
             'archived' => $dryRun ? 0 : $toArchive->count(),
             'dry_run' => $dryRun,

@@ -31,7 +31,7 @@
                 <div class="mt-5 flex flex-wrap gap-3">
                     @foreach($apps as $app)
                         <button type="button" class="verification-app group flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-teal/60 hover:shadow-md" data-app="{{ $app['slug'] }}" title="{{ $app['label'] }} · {{ $app['country_count'] }} {{ $app['country_count'] === 1 ? 'country' : 'countries' }} · {{ number_format($app['option_count']) }} options" aria-label="Choose {{ $app['label'] }} for verification">
-                            <img src="https://cdn.simpleicons.org/{{ $app['logo'] }}/{{ ltrim($app['color'] ?? '#0F172A', '#') }}" alt="{{ $app['label'] }} logo" class="h-9 w-9" loading="lazy">
+                            <img src="https://cdn.simpleicons.org/{{ $app['logo'] }}/{{ ltrim($app['color'] ?? '071C1A', '#') }}" alt="{{ $app['label'] }} logo" class="h-9 w-9" loading="lazy">
                         </button>
                     @endforeach
                 </div>

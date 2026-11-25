@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="relative overflow-hidden bg-brand-navy text-white">
-    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 20%, #06B6D4 0, transparent 32%), radial-gradient(circle at 80% 10%, #F59E0B 0, transparent 24%);"></div>
+    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 20%, #13B89A 0, transparent 32%), radial-gradient(circle at 80% 10%, #B6F36B 0, transparent 24%);"></div>
     <div class="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Pricing</p>
         <h1 class="mt-3 max-w-3xl text-4xl font-extrabold sm:text-5xl">Simple, transparent marketplace pricing.</h1>

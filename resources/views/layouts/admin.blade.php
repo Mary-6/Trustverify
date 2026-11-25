@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="application-name" content="TrustVerifySMS Admin">
-    <meta name="theme-color" content="#0A0F1E">
+    <meta name="theme-color" content="#071C1A">
     <title>@yield('title', 'Admin') | TrustVerifySMS Admin</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-100 font-sans text-brand-text antialiased dark:bg-[#0B1220]">
+<body class="bg-brand-bg font-sans text-brand-text antialiased">
 <script>
 (function () {
     var theme = localStorage.getItem('theme');

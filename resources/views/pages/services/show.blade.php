@@ -19,6 +19,7 @@
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Price</dt><dd class="mt-1 text-sm font-semibold">{{ number_format((float) $product->price, $product->priceDecimals()) }} {{ $product->currency }}{{ $product->priceSuffix() }}</dd></div>
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Minimum order</dt><dd class="mt-1 text-sm font-semibold">{{ $product->min_order ?? 1 }}</dd></div>
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Maximum order</dt><dd class="mt-1 text-sm font-semibold">{{ $product->max_order ?? 'Unlimited' }}</dd></div>
+                    @if($delivery = $product->estimatedDelivery())<div><dt class="text-xs font-bold uppercase text-brand-muted">Est. delivery</dt><dd class="mt-1 text-sm font-semibold">{{ $delivery }}</dd></div>@endif
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Availability</dt><dd class="mt-1 text-sm font-semibold">{{ $product->isAvailable() ? 'Available' : 'Unavailable' }}</dd></div>
                     <div><dt class="text-xs font-bold uppercase text-brand-muted">Supplier mode</dt><dd class="mt-1 text-sm font-semibold">{{ $product->supplier_adapter ?: $product->supplier ?: 'manual' }}</dd></div>
                 </dl>

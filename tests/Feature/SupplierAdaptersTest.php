@@ -426,6 +426,113 @@ class SupplierAdaptersTest extends TestCase
         $this->assertSame('active', $product->status);
     }
 
+    public function test_justanotherpanel_import_skips_country_specific_services(): void
+    {
+        config()->set('justanotherpanel.base_url', 'https://panel.test');
+        config()->set('justanotherpanel.endpoint', '/api/v2');
+        config()->set('justanotherpanel.api_key', 'jap-key');
+
+        Http::fake(function ($request) {
+            $data = $request->data();
+
+            if (($data['action'] ?? null) === 'services') {
+                return Http::response([
+                    ['service' => 123, 'name' => 'Instagram Followers', 'rate' => 1, 'type' => 'Default', 'category' => 'Instagram', 'min' => 1, 'max' => 1000],
+                    ['service' => 456, 'name' => 'Facebook Group Members [THAILAND]', 'rate' => 1, 'type' => 'Default', 'category' => 'Facebook', 'min' => 1, 'max' => 1000],
+                    ['service' => 789, 'name' => 'Youtube Likes [RUSSIAN]', 'rate' => 1, 'type' => 'Default', 'category' => 'YouTube', 'min' => 1, 'max' => 1000],
+                ]);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $result = app(JustAnotherPanelCatalogImporter::class)->import([
+            'brands' => ['instagram', 'facebook', 'youtube'],
+            'types' => 'Default',
+            'dry_run' => true,
+        ]);
+
+        $this->assertSame(1, $result['matched']);
+        $this->assertSame(1, $result['imported']);
+        $this->assertSame(2, $result['country_specific']);
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_justanotherpanel_sync_archives_country_specific_services_still_in_catalog(): void
+    {
+        config()->set('justanotherpanel.base_url', 'https://panel.test');
+        config()->set('justanotherpanel.endpoint', '/api/v2');
+        config()->set('justanotherpanel.api_key', 'jap-key');
+
+        $general = Product::create([
+            'name' => 'Instagram Followers',
+            'type' => 'smm_service',
+            'price' => 100,
+            'currency' => 'XAF',
+            'supplier' => 'justanotherpanel',
+            'supplier_adapter' => 'justanotherpanel',
+            'supplier_product_id' => '123',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+        $thailand = Product::create([
+            'name' => 'Facebook Group Members [THAILAND]',
+            'type' => 'smm_service',
+            'price' => 100,
+            'currency' => 'XAF',
+            'supplier' => 'justanotherpanel',
+            'supplier_adapter' => 'justanotherpanel',
+            'supplier_product_id' => '456',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+        $russian = Product::create([
+            'name' => 'Youtube Likes [RUSSIAN]',
+            'type' => 'smm_service',
+            'price' => 100,
+            'currency' => 'XAF',
+            'supplier' => 'justanotherpanel',
+            'supplier_adapter' => 'justanotherpanel',
+            'supplier_product_id' => '789',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        Http::fake(function ($request) {
+            $data = $request->data();
+
+            if (($data['action'] ?? null) === 'services') {
+                return Http::response([
+                    ['service' => 123, 'name' => 'Instagram Followers', 'rate' => 1, 'type' => 'Default', 'category' => 'Instagram', 'min' => 1, 'max' => 1000],
+                    ['service' => 456, 'name' => 'Facebook Group Members [THAILAND]', 'rate' => 1, 'type' => 'Default', 'category' => 'Facebook', 'min' => 1, 'max' => 1000],
+                    ['service' => 789, 'name' => 'Youtube Likes [RUSSIAN]', 'rate' => 1, 'type' => 'Default', 'category' => 'YouTube', 'min' => 1, 'max' => 1000],
+                ]);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $result = app(JustAnotherPanelCatalogImporter::class)->sync(['dry_run' => false]);
+
+        $this->assertSame(3, $result['catalog_count']);
+        $this->assertSame(3, $result['products']);
+        $this->assertSame(0, $result['missing']);
+        $this->assertSame(2, $result['country_specific']);
+        $this->assertSame(2, $result['candidates']);
+        $this->assertSame(2, $result['archived']);
+
+        $general->refresh();
+        $thailand->refresh();
+        $russian->refresh();
+
+        $this->assertTrue($general->is_active);
+        $this->assertSame('active', $general->status);
+        $this->assertFalse($thailand->is_active);
+        $this->assertSame('archived', $thailand->status);
+        $this->assertFalse($russian->is_active);
+        $this->assertSame('archived', $russian->status);
+    }
+
     private function textVerifiedProduct(): Product
     {
         return Product::create([

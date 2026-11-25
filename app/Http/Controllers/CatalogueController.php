@@ -65,6 +65,44 @@ class CatalogueController extends Controller
         ]);
     }
 
+    public function smmProducts(Request $request)
+    {
+        $brand = (string) $request->query('brand', '');
+        $group = (string) $request->query('group', '');
+
+        abort_unless(isset(ServiceCatalogue::brands()[$brand]) && isset(ServiceCatalogue::groups($brand)[$group]), 404);
+
+        $products = ServiceCatalogue::productsForGroup($brand, $group)
+            ->map(function (Product $product) {
+                $requiresLink = $product->type === 'smm_service'
+                    && ($product->supplier_adapter ?: $product->supplier) === 'justanotherpanel';
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'summary' => $product->summary,
+                    'price' => (float) $product->price,
+                    'currency' => $product->currency ?: 'XAF',
+                    'decimals' => $product->priceDecimals(),
+                    'is_per_1000' => $product->isPer1000(),
+                    'min_order' => (int) ($product->min_order ?? 1),
+                    'max_order' => $product->max_order ? (int) $product->max_order : null,
+                    'delivery' => $product->estimatedDelivery(),
+                    'available' => $product->isAvailable(),
+                    'requires_link' => $requiresLink,
+                    'order_url' => route('dashboard.orders.store', $product),
+                    'detail_url' => route('services.show', $product),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'brand' => $brand,
+            'group' => $group,
+            'products' => $products,
+        ]);
+    }
+
     private function catalogueQuery(Product $product): array
     {
         $service = $product->type === 'virtual_number' ? 'virtual_number' : 'smm_service';
@@ -176,6 +214,7 @@ class CatalogueController extends Controller
             'selectedBrandSlug' => $selectedBrandSlug,
             'awaitingBrand' => $awaitingBrand,
             'brandComingSoon' => $brandComingSoon,
+            'smmSummaries' => $brandSummaries,
             'brandSummaries' => $selectedBrand ? ($brandSummaries[$selectedBrandSlug] ?? []) : [],
             'selectedGroup' => $selectedGroup,
             'selectedGroupSlug' => $selectedGroupSlug,
@@ -218,6 +257,7 @@ class CatalogueController extends Controller
             'awaitingBrand' => false,
             'brandComingSoon' => false,
             'brandSummaries' => [],
+            'smmSummaries' => [],
             'selectedGroup' => null,
             'selectedGroupSlug' => null,
             'groupComingSoon' => false,

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Product;
+use App\Services\SettingsService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -12,12 +13,12 @@ class ServiceCatalogue
     {
         return [
             'instagram' => ['label' => 'Instagram', 'sort_order' => 1, 'logo' => 'instagram', 'color' => '#E1306C', 'gradient' => 'linear-gradient(135deg,#833AB4 0%,#E1306C 45%,#F56040 75%,#FCAF45 100%)'],
-            'tiktok' => ['label' => 'TikTok', 'sort_order' => 2, 'logo' => 'tiktok', 'color' => '#FE2C55', 'gradient' => 'linear-gradient(135deg,#010101 0%,#25F4EE 55%,#FE2C55 100%)'],
-            'facebook' => ['label' => 'Facebook', 'sort_order' => 3, 'logo' => 'facebook', 'color' => '#1877F2', 'gradient' => 'linear-gradient(135deg,#1877F2 0%,#0A5BE0 100%)'],
-            'youtube' => ['label' => 'YouTube', 'sort_order' => 4, 'logo' => 'youtube', 'color' => '#FF0000', 'gradient' => 'linear-gradient(135deg,#FF0000 0%,#FF4E45 100%)'],
+            'facebook' => ['label' => 'Facebook', 'sort_order' => 2, 'logo' => 'facebook', 'color' => '#1877F2', 'gradient' => 'linear-gradient(135deg,#1877F2 0%,#0A5BE0 100%)'],
+            'youtube' => ['label' => 'YouTube', 'sort_order' => 3, 'logo' => 'youtube', 'color' => '#FF0000', 'gradient' => 'linear-gradient(135deg,#FF0000 0%,#FF4E45 100%)'],
+            'tiktok' => ['label' => 'TikTok', 'sort_order' => 4, 'logo' => 'tiktok', 'color' => '#FE2C55', 'gradient' => 'linear-gradient(135deg,#010101 0%,#25F4EE 55%,#FE2C55 100%)'],
             'telegram' => ['label' => 'Telegram', 'sort_order' => 5, 'logo' => 'telegram', 'color' => '#229ED9', 'gradient' => 'linear-gradient(135deg,#229ED9 0%,#1E96D4 100%)'],
             'whatsapp' => ['label' => 'WhatsApp', 'sort_order' => 6, 'logo' => 'whatsapp', 'color' => '#25D366', 'gradient' => 'linear-gradient(135deg,#128C7E 0%,#25D366 100%)'],
-            'x-twitter' => ['label' => 'X / Twitter', 'sort_order' => 7, 'logo' => 'x', 'color' => '#000000', 'gradient' => 'linear-gradient(135deg,#1F2937 0%,#000000 100%)'],
+            'x-twitter' => ['label' => 'X (formerly Twitter)', 'sort_order' => 7, 'logo' => 'x', 'color' => '#000000', 'gradient' => 'linear-gradient(135deg,#1F2937 0%,#000000 100%)'],
         ];
     }
 
@@ -26,16 +27,46 @@ class ServiceCatalogue
         return self::definitions()[$brand] ?? [];
     }
 
+    public static function brandForProduct(Product $product): ?string
+    {
+        $override = self::overrideMapping($product);
+        if ($override !== null) {
+            return $override[0];
+        }
+
+        $platform = $product->meta['smm_platform'] ?? null;
+        if (is_string($platform) && isset(self::brands()[$platform])) {
+            return $platform;
+        }
+
+        $slug = $product->category?->slug;
+
+        return is_string($slug) && isset(self::brands()[$slug]) ? $slug : null;
+    }
+
     public static function groupForProduct(Product $product): ?string
     {
-        $brand = $product->category?->slug;
-        if (! $brand || ! isset(self::brands()[$brand])) {
+        $override = self::overrideMapping($product);
+        if ($override !== null) {
+            return $override[1];
+        }
+
+        $brand = self::brandForProduct($product);
+        if (! $brand) {
             return null;
         }
 
         $name = Str::lower((string) $product->name);
         if (self::mentionsForeignBrand($name, $brand)) {
             return null;
+        }
+
+        foreach (self::matchFirstGroups($brand) as $group => $definition) {
+            foreach ($definition['needles'] as $needle) {
+                if (Str::contains($name, Str::lower($needle))) {
+                    return $group;
+                }
+            }
         }
 
         foreach (self::groups($brand) as $group => $definition) {
@@ -77,6 +108,10 @@ class ServiceCatalogue
             ->with('category')
             ->get()
             ->map(function (Product $product) use ($brand) {
+                if (self::brandForProduct($product) !== $brand) {
+                    return null;
+                }
+
                 $group = self::groupForProduct($product);
 
                 if ($group === null || ! self::isPresentable($product)) {
@@ -111,20 +146,77 @@ class ServiceCatalogue
 
     public static function productsForGroup(string $brand, string $group): Collection
     {
-        return self::catalogueRows($brand)
+        $products = self::catalogueRows($brand)
             ->where('group', $group)
-            ->sortBy(fn ($row) => (float) $row['product']->price)
-            ->pluck('product')
+            ->map(fn ($row) => $row['product'])
             ->values();
+
+        $products = $products
+            ->sort(function (Product $a, Product $b) {
+                $orderA = (int) ($a->sort_order ?? 999999);
+                $orderB = (int) ($b->sort_order ?? 999999);
+
+                if ($orderA !== $orderB) {
+                    return $orderA <=> $orderB;
+                }
+
+                return (float) $a->price <=> (float) $b->price;
+            })
+            ->values();
+
+        $limit = self::displayLimit($brand, $group);
+
+        return $products
+            ->when($limit !== null, fn (Collection $items) => $items->take($limit))
+            ->values();
+    }
+
+    public static function displayLimit(string $brand, string $group): ?int
+    {
+        $limits = app(SettingsService::class)->get('smm.display_limits', []);
+        $value = is_array($limits) ? ($limits[$brand][$group] ?? null) : null;
+
+        return is_numeric($value) && (int) $value > 0 ? (int) $value : null;
+    }
+
+    private static function overrideMapping(Product $product): ?array
+    {
+        $override = $product->meta['smm_group'] ?? null;
+        if (! is_string($override) || trim($override) === '') {
+            return null;
+        }
+
+        $value = trim($override);
+        if (str_contains($value, ':')) {
+            [$brand, $group] = explode(':', $value, 2);
+            $brand = trim($brand);
+            $group = trim($group);
+        } else {
+            $brand = (string) ($product->category?->slug ?? '');
+            $group = $value;
+        }
+
+        if ($brand !== '' && isset(self::brands()[$brand]) && isset(self::groups($brand)[$group])) {
+            return [$brand, $group];
+        }
+
+        return null;
+    }
+
+    private static function matchFirstGroups(string $brand): array
+    {
+        return collect(self::groups($brand))
+            ->filter(fn ($definition) => ! empty($definition['match_first']))
+            ->all();
     }
 
     private static function mentionsForeignBrand(string $name, string $brand): bool
     {
         $needles = [
             'instagram' => 'instagram',
-            'tiktok' => 'tiktok',
             'facebook' => 'facebook',
             'youtube' => 'youtube',
+            'tiktok' => 'tiktok',
             'telegram' => 'telegram',
             'whatsapp' => 'whatsapp',
             'x-twitter' => 'twitter',
@@ -143,59 +235,54 @@ class ServiceCatalogue
     {
         return [
             'instagram' => [
-                'followers' => ['label' => 'Followers', 'description' => 'Grow your Instagram profile with follower packages.', 'cap' => 2400, 'needles' => ['follower']],
-                'comments' => ['label' => 'Custom Comments', 'description' => 'Add comments to posts and reels.', 'cap' => 2400, 'needles' => ['comment']],
-                'story_views' => ['label' => 'Story Views', 'description' => 'Increase views on your Instagram stories.', 'cap' => 168, 'needles' => ['story']],
-                'likes' => ['label' => 'Post Likes', 'description' => 'Boost likes on posts and reels.', 'cap' => 320, 'needles' => ['like']],
-                'views' => ['label' => 'Video / Reel Views', 'description' => 'Increase views on videos and reels.', 'cap' => 48, 'needles' => ['view', 'reel', 'impression']],
-                'reposts_shares' => ['label' => 'Reposts & Shares', 'description' => 'Amplify reach with reposts and shares.', 'cap' => 531.2, 'needles' => ['repost', 'share']],
-                'channel_members' => ['label' => 'Channel Members', 'description' => 'Add members to your Instagram channel.', 'cap' => 800, 'needles' => ['channel', 'member']],
-            ],
-            'tiktok' => [
-                'followers' => ['label' => 'Followers', 'description' => 'Choose average or high-quality TikTok followers.', 'cap' => 4000, 'needles' => ['follower']],
-                'saves' => ['label' => 'Video Saves', 'description' => 'Increase saves on your TikTok videos.', 'cap' => 8, 'needles' => ['save']],
-                'shares' => ['label' => 'Video Shares', 'description' => 'Boost shares on your TikTok content.', 'cap' => 160, 'needles' => ['share']],
-                'livestream_likes' => ['label' => 'Livestream Likes', 'description' => 'Send likes during your TikTok livestreams.', 'cap' => 160, 'needles' => ['live', 'livestream']],
-                'comments' => ['label' => 'Custom Comments', 'description' => 'Add custom or random comments to videos.', 'cap' => 3200, 'needles' => ['comment']],
-                'comment_likes' => ['label' => 'Comment Likes', 'description' => 'Like comments on TikTok videos.', 'cap' => 400, 'needles' => ['comment like']],
-                'views' => ['label' => 'Video Views', 'description' => 'Increase views on your TikTok videos.', 'cap' => 48, 'needles' => ['view', 'play']],
-                'likes' => ['label' => 'Video Likes', 'description' => 'Boost likes on your TikTok videos.', 'cap' => 360, 'needles' => ['like']],
+                'followers' => ['label' => 'Followers', 'description' => 'Grow your Instagram profile with follower packages.', 'needles' => ['follower']],
+                'likes' => ['label' => 'Likes', 'description' => 'Boost likes on Instagram posts.', 'needles' => ['like']],
+                'reel_likes' => ['label' => 'Reel Likes', 'description' => 'Increase likes on Instagram reels.', 'match_first' => true, 'needles' => ['reel like', 'reels like', 'reel likes']],
+                'views' => ['label' => 'Views', 'description' => 'Increase views on Instagram posts, reels and stories.', 'needles' => ['view', 'reel', 'impression', 'story']],
+                'comments' => ['label' => 'Comments', 'description' => 'Add comments to Instagram posts and reels.', 'needles' => ['comment']],
+                'shares' => ['label' => 'Shares', 'description' => 'Amplify reach with Instagram shares and reposts.', 'needles' => ['share', 'repost']],
             ],
             'facebook' => [
-                'page_followers' => ['label' => 'Page Followers', 'description' => 'Grow followers on your Facebook page.', 'cap' => 2400, 'needles' => ['page follower', 'page fan']],
-                'profile_followers' => ['label' => 'Profile Followers', 'description' => 'Increase followers on your Facebook profile.', 'cap' => 1600, 'needles' => ['profile follower', 'friend request']],
-                'page_reviews' => ['label' => 'Page Reviews', 'description' => 'Add reviews and ratings to your Facebook page.', 'cap' => 44800, 'needles' => ['review', 'rating']],
-                'reactions' => ['label' => 'Emoji Post Reactions', 'description' => 'Add emoji reactions to your Facebook posts.', 'cap' => 336, 'needles' => ['emoji', 'reaction', '[love', '[care', '[haha', '[wow', '[sad']],
-                'shares' => ['label' => 'Post Shares', 'description' => 'Increase shares on your Facebook posts.', 'cap' => 800, 'needles' => ['share']],
-                'group_members' => ['label' => 'Group Members', 'description' => 'Grow members in your Facebook group.', 'cap' => 1440, 'needles' => ['group member', 'group']],
-                'video_views' => ['label' => 'Video / Reel Views', 'description' => 'Increase views on Facebook videos and reels.', 'cap' => 72, 'needles' => ['video view', 'reel view', 'view']],
-                'comments' => ['label' => 'Custom Comments', 'description' => 'Add custom comments to Facebook posts.', 'cap' => 3200, 'needles' => ['comment']],
-                'post_likes' => ['label' => 'Post Likes', 'description' => 'Boost likes on your Facebook posts.', 'cap' => 320, 'needles' => ['post like', 'page like', 'photo like', 'like']],
-            ],
-            'whatsapp' => [
-                'channel_followers' => ['label' => 'Channel Followers', 'description' => 'Grow followers on your WhatsApp channel.', 'cap' => 4200, 'needles' => ['channel member', 'follower', 'member']],
-                'reactions' => ['label' => 'Channel Emoji Reactions', 'description' => 'Add emoji reactions to WhatsApp channel posts.', 'cap' => 1700, 'needles' => ['reaction', 'emoji']],
-                'poll_votes' => ['label' => 'Poll Votes', 'description' => 'Boost votes on WhatsApp channel polls.', 'cap' => 2400, 'needles' => ['poll', 'vote']],
-            ],
-            'telegram' => [
-                'members' => ['label' => 'Group / Channel Members', 'description' => 'Choose average or high-quality Telegram members.', 'cap' => 2400, 'needles' => ['member', 'subscriber', 'follower']],
-                'future_post_reactions' => ['label' => 'Future Post Reactions', 'description' => 'Reactions for upcoming Telegram posts.', 'cap' => 2560, 'needles' => ['future post reaction', 'future reaction', 'future reactions', 'auto reaction']],
-                'future_post_views' => ['label' => 'Future Post Views', 'description' => 'Views for upcoming Telegram posts.', 'cap' => 480, 'needles' => ['future post view', 'future view', 'future views', 'auto view', 'auto views']],
-                'post_views' => ['label' => 'Post Views', 'description' => 'Increase views on a specific Telegram post.', 'cap' => 24, 'needles' => ['post view', 'view']],
-                'reactions' => ['label' => 'Post Reactions', 'description' => 'Add reactions to a specific Telegram post.', 'cap' => 16, 'needles' => ['reaction', 'emoji']],
+                'page_followers' => ['label' => 'Page Followers', 'description' => 'Grow followers on your Facebook page or profile.', 'needles' => ['page follower', 'profile follower', 'friend request', 'follower', 'fan']],
+                'page_likes' => ['label' => 'Page Likes', 'description' => 'Increase likes on your Facebook page.', 'needles' => ['page like', 'fan']],
+                'post_likes' => ['label' => 'Post Likes', 'description' => 'Boost likes on Facebook posts and photos.', 'needles' => ['post like', 'photo like', 'like']],
+                'post_comments' => ['label' => 'Post Comments', 'description' => 'Add comments to Facebook posts.', 'needles' => ['comment']],
+                'post_shares' => ['label' => 'Post Shares', 'description' => 'Increase shares on Facebook posts.', 'needles' => ['share']],
+                'video_views' => ['label' => 'Video Views', 'description' => 'Increase views on Facebook videos and reels.', 'needles' => ['video view', 'videos view', 'reel view', 'reels view', 'watch']],
             ],
             'youtube' => [
-                'subscribers' => ['label' => 'Subscribers', 'description' => 'Choose average or high-quality YouTube subscribers.', 'cap' => 32000, 'needles' => ['subscriber']],
-                'views' => ['label' => 'Video Views', 'description' => 'Increase views on your YouTube videos.', 'cap' => 1120, 'needles' => ['view', 'watch', 'play']],
-                'likes' => ['label' => 'Video Likes', 'description' => 'Boost likes on your YouTube videos.', 'cap' => 4800, 'needles' => ['like']],
-                'comments' => ['label' => 'Custom Comments', 'description' => 'Add custom comments to YouTube videos.', 'cap' => 8000, 'needles' => ['comment']],
+                'subscribers' => ['label' => 'Subscribers', 'description' => 'Grow your YouTube channel with subscribers.', 'needles' => ['subscriber', 'subscription']],
+                'video_views' => ['label' => 'Video Views', 'description' => 'Increase views on YouTube videos.', 'needles' => ['view', 'play']],
+                'likes' => ['label' => 'Likes', 'description' => 'Boost likes on YouTube videos.', 'needles' => ['like']],
+                'comments' => ['label' => 'Comments', 'description' => 'Add comments to YouTube videos.', 'needles' => ['comment']],
+                'shares' => ['label' => 'Shares', 'description' => 'Increase shares on YouTube videos.', 'needles' => ['share']],
+                'watch_time' => ['label' => 'Watch Time', 'description' => 'Add watch time hours to YouTube videos.', 'match_first' => true, 'needles' => ['watch time', 'watchtime', 'watch hour', 'hours watch', 'watch hrs']],
+            ],
+            'tiktok' => [
+                'followers' => ['label' => 'Followers', 'description' => 'Grow your TikTok profile with followers.', 'needles' => ['follower']],
+                'likes' => ['label' => 'Likes', 'description' => 'Boost likes on TikTok videos and livestreams.', 'needles' => ['like']],
+                'video_views' => ['label' => 'Video Views', 'description' => 'Increase views on TikTok videos.', 'needles' => ['view', 'play']],
+                'comments' => ['label' => 'Comments', 'description' => 'Add comments to TikTok videos.', 'needles' => ['comment']],
+                'shares' => ['label' => 'Shares', 'description' => 'Increase shares on TikTok videos.', 'needles' => ['share']],
+            ],
+            'telegram' => [
+                'channel_members' => ['label' => 'Channel Members', 'description' => 'Grow members on your Telegram channel.', 'needles' => ['channel', 'subscriber']],
+                'group_members' => ['label' => 'Group Members', 'description' => 'Grow members in your Telegram group.', 'needles' => ['group', 'member', 'invite']],
+                'post_views' => ['label' => 'Post Views', 'description' => 'Increase views on Telegram posts.', 'needles' => ['post view', 'view']],
+                'reactions' => ['label' => 'Reactions', 'description' => 'Add reactions to Telegram posts.', 'needles' => ['reaction', 'emoji']],
+            ],
+            'whatsapp' => [
+                'channel_followers' => ['label' => 'Channel Followers', 'description' => 'Grow followers on your WhatsApp channel.', 'needles' => ['channel follower', 'channel member', 'follower']],
+                'group_members' => ['label' => 'Group Members', 'description' => 'Grow members in your WhatsApp group.', 'needles' => ['group member', 'group', 'member', 'invite']],
+                'channel_views' => ['label' => 'Channel Views', 'description' => 'Increase views on WhatsApp channel posts.', 'needles' => ['channel view', 'post view', 'view']],
+                'reactions' => ['label' => 'Reactions', 'description' => 'Add reactions to WhatsApp channel posts.', 'needles' => ['reaction', 'emoji']],
             ],
             'x-twitter' => [
-                'followers' => ['label' => 'Followers', 'description' => 'Grow followers on X / Twitter.', 'cap' => null, 'needles' => ['follower', 'subscriber']],
-                'likes' => ['label' => 'Likes', 'description' => 'Boost likes on X / Twitter posts.', 'cap' => null, 'needles' => ['like']],
-                'retweets' => ['label' => 'Retweets', 'description' => 'Increase retweets and reposts on X / Twitter.', 'cap' => null, 'needles' => ['retweet', 'repost']],
-                'views' => ['label' => 'Views', 'description' => 'Increase views on X / Twitter posts.', 'cap' => null, 'needles' => ['view', 'impression']],
-                'comments' => ['label' => 'Comments', 'description' => 'Add comments on X / Twitter posts.', 'cap' => null, 'needles' => ['comment']],
+                'followers' => ['label' => 'Followers', 'description' => 'Grow followers on X.', 'needles' => ['follower', 'subscriber']],
+                'likes' => ['label' => 'Likes', 'description' => 'Boost likes on X posts.', 'needles' => ['like']],
+                'views' => ['label' => 'Views', 'description' => 'Increase views on X posts.', 'needles' => ['view', 'impression']],
+                'retweets' => ['label' => 'Reposts (Retweets)', 'description' => 'Increase reposts and retweets on X.', 'needles' => ['retweet', 'repost']],
+                'comments' => ['label' => 'Comments (Replies)', 'description' => 'Add comments and replies on X posts.', 'needles' => ['comment', 'reply']],
             ],
         ];
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\ServiceCatalogue;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -27,6 +28,8 @@ class ProductController extends Controller
         return view('admin.products.form', [
             'product' => new Product(),
             'categories' => Category::active()->get(),
+            'smmGroups' => [],
+            'smmGroup' => null,
         ]);
     }
 
@@ -42,6 +45,8 @@ class ProductController extends Controller
         return view('admin.products.form', [
             'product' => $product,
             'categories' => Category::active()->get(),
+            'smmGroups' => $this->smmGroupsFor($product),
+            'smmGroup' => $product->meta['smm_group'] ?? null,
         ]);
     }
 
@@ -82,6 +87,7 @@ class ProductController extends Controller
             'supplier_service_not_listed_name' => ['nullable', 'string', 'max:160'],
             'supplier_max_price' => ['nullable', 'numeric', 'min:0'],
             'supplier_country_id' => ['nullable', 'string', 'max:40'],
+            'smm_group' => ['nullable', 'string', 'max:80'],
             'status' => ['required', 'in:draft,active,inactive,archived'],
             'is_active' => ['boolean'],
             'is_featured' => ['boolean'],
@@ -95,7 +101,7 @@ class ProductController extends Controller
         $data['is_featured'] = $request->boolean('is_featured');
 
         $meta = $product?->meta ?? [];
-        foreach (['service_name', 'capability', 'area_codes', 'carriers', 'service_not_listed_name', 'max_price', 'country_id', 'pricing_unit'] as $key) {
+        foreach (['service_name', 'capability', 'area_codes', 'carriers', 'service_not_listed_name', 'max_price', 'country_id', 'pricing_unit', 'smm_group', 'smm_platform'] as $key) {
             unset($meta[$key]);
         }
 
@@ -138,9 +144,28 @@ class ProductController extends Controller
             $meta['pricing_unit'] = $pricingUnit;
         }
 
+        $categoryId = $data['category_id'] ?? $product?->category_id;
+        $brandSlug = $categoryId ? Category::find($categoryId)?->slug : null;
+        $allowedGroups = is_string($brandSlug) && isset(ServiceCatalogue::brands()[$brandSlug])
+            ? ServiceCatalogue::groups($brandSlug)
+            : [];
+        $smmGroup = trim((string) $request->input('smm_group', ''));
+        if ($smmGroup !== '' && isset($allowedGroups[$smmGroup])) {
+            $meta['smm_group'] = $smmGroup;
+        }
+
         $data['meta'] = $meta ?: null;
 
         return $data;
+    }
+
+    private function smmGroupsFor(Product $product): array
+    {
+        $brand = $product->category?->slug;
+
+        return is_string($brand) && isset(ServiceCatalogue::brands()[$brand])
+            ? ServiceCatalogue::groups($brand)
+            : [];
     }
 
     private function csvToList(mixed $value): array

@@ -77,6 +77,32 @@ class Product extends Model
         return $this->isAvailable();
     }
 
+    public function estimatedDelivery(): ?string
+    {
+        $meta = $this->meta ?? [];
+        $sources = [
+            (string) ($meta['start_time'] ?? ''),
+            (string) ($meta['supplier_service_name'] ?? ''),
+            (string) ($meta['service_name'] ?? ''),
+            (string) ($this->description ?? ''),
+        ];
+
+        foreach ($sources as $source) {
+            if ($source === '') {
+                continue;
+            }
+
+            if (preg_match('/start\s*time\s*[:\-]?\s*([^\]\[\n,]+)/i', $source, $matches)) {
+                $value = trim((string) $matches[1]);
+                if ($value !== '') {
+                    return Str::limit($value, 60, '');
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function pricingUnit(): string
     {
         return (string) (($this->meta['pricing_unit'] ?? null) ?: 'per_unit');

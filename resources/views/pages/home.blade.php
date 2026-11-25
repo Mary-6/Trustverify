@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="relative overflow-hidden bg-brand-navy text-white">
-    <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 15% 20%, #06B6D4 0, transparent 32%), radial-gradient(circle at 85% 15%, #F59E0B 0, transparent 28%), radial-gradient(circle at 65% 90%, #06B6D4 0, transparent 30%);"></div>
+    <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 15% 20%, #13B89A 0, transparent 32%), radial-gradient(circle at 85% 15%, #B6F36B 0, transparent 28%), radial-gradient(circle at 65% 90%, #13B89A 0, transparent 30%);"></div>
     <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-brand-bg to-transparent"></div>
     <div class="relative mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 lg:px-8 lg:pb-28 lg:pt-24">
         <div class="max-w-4xl">
