@@ -41,7 +41,8 @@
                 <h2 class="text-lg font-extrabold text-brand-navy">Verification code</h2>
                 <div id="verification-code-state" class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-brand-bg p-6 text-center">
                     <p class="text-sm font-bold uppercase tracking-wider text-brand-teal" id="verification-state-label">Waiting for SMS</p>
-                    <p class="mt-2 text-sm text-brand-muted" id="verification-state-message">We are checking the provider for the verification SMS. Keep this page open.</p>
+                    <p class="mt-2 text-sm text-brand-muted" id="verification-state-message">Use the number below to request the SMS on the app or service, then keep this page open. We are checking the provider automatically.</p>
+                    <button type="button" id="verification-check-code" class="mt-4 rounded-xl border border-brand-teal/30 bg-white px-4 py-2 text-sm font-extrabold text-brand-teal hover:bg-brand-teal-soft {{ $order->isTerminal() || ! empty($delivery['sms_code']) || ! empty($delivery['sms_content']) ? 'hidden' : '' }}">Check for code now</button>
                     <div id="verification-code-box" class="mt-5 hidden">
                         <p class="text-3xl font-extrabold tracking-widest text-brand-navy" id="verification-code">—</p>
                         <button type="button" id="verification-copy-code" class="mt-4 rounded-xl bg-brand-navy px-5 py-3 text-sm font-extrabold text-white hover:bg-brand-navy-light">Copy code</button>
@@ -56,6 +57,7 @@
                 <h2 class="text-lg font-extrabold text-brand-navy">Your number</h2>
                 <p id="verification-number" class="mt-4 break-all text-2xl font-extrabold text-brand-navy">{{ $delivery['number'] ?? 'Waiting for provider' }}</p>
                 <p class="mt-2 text-sm text-brand-muted" id="verification-ends-at">{{ ! empty($delivery['ends_at']) ? 'Valid until '.\Illuminate\Support\Carbon::parse($delivery['ends_at'])->diffForHumans() : 'Availability is confirmed by the provider.' }}</p>
+                <p class="mt-3 text-sm font-bold text-brand-text">Use this number on the app or service and request the SMS/code there.</p>
                 <div class="mt-5 flex flex-col gap-2">
                     @if($canCancel)
                         <form method="POST" action="{{ $cancelUrl }}">
@@ -102,11 +104,12 @@
         document.getElementById('verification-state-label').textContent = stateLabel;
         document.getElementById('verification-state-message').textContent = stateLabel === 'Code Received'
             ? 'The verification SMS has been received from the provider.'
-            : stateLabel === 'Completed' ? 'This verification is complete.' : stateLabel === 'Cancelled' ? 'This verification was cancelled.' : stateLabel === 'Expired' ? 'This verification expired before the SMS arrived.' : stateLabel === 'Failed' ? 'The provider could not complete this verification.' : 'We are checking the provider for the verification SMS. Keep this page open.';
+            : stateLabel === 'Completed' ? 'This verification is complete.' : stateLabel === 'Cancelled' ? 'This verification was cancelled.' : stateLabel === 'Expired' ? 'This verification expired before the SMS arrived.' : stateLabel === 'Failed' ? 'The provider could not complete this verification.' : 'Use the number above to request the code, then keep this page open. We are checking the provider automatically.';
         if (code) {
             document.getElementById('verification-code').textContent = code;
             document.getElementById('verification-code-box').classList.remove('hidden');
         }
+        document.getElementById('verification-check-code').classList.toggle('hidden', !!code || !!data.terminal || data.status === 'completed');
         state.terminal = !!data.terminal;
     }
 
@@ -130,6 +133,15 @@
         } catch (error) {
             window.prompt('Copy this code', code);
         }
+    });
+
+    document.getElementById('verification-check-code').addEventListener('click', function () {
+        this.disabled = true;
+        this.textContent = 'Checking...';
+        poll().finally(() => {
+            this.disabled = false;
+            this.textContent = 'Check for code now';
+        });
     });
 
     if (!state.terminal) {
