@@ -55,7 +55,7 @@ class VerificationController extends Controller
 
         $wallet = app(WalletService::class)->walletFor($request->user());
         if (Money::compare($wallet->balance, $product->price) < 0) {
-            return back()->withErrors(['wallet' => 'Insufficient wallet balance. Add funds before getting a number.']);
+            return $this->depositRedirect();
         }
 
         try {
@@ -73,6 +73,10 @@ class VerificationController extends Controller
                 'SMS verification number request.'
             );
         } catch (RuntimeException $e) {
+            if ($this->isInsufficientBalance($e)) {
+                return $this->depositRedirect();
+            }
+
             return back()->withErrors(['order' => $e->getMessage()]);
         }
 
@@ -131,6 +135,17 @@ class VerificationController extends Controller
 
         return redirect()->route('dashboard.verification.orders.show', $order->fresh())
             ->with('status', 'Verification cancelled. Any wallet refund has been applied.');
+    }
+
+    private function isInsufficientBalance(RuntimeException $e): bool
+    {
+        return str_contains(strtolower($e->getMessage()), 'insufficient wallet balance');
+    }
+
+    private function depositRedirect()
+    {
+        return redirect()->route('dashboard.wallet.index', ['return_to' => route('verification.index', [], false)])
+            ->with('error', 'Insufficient wallet balance. Deposit funds to get your verification number.');
     }
 
     private function authorizeOrder(Request $request, Order $order): void

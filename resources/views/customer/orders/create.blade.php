@@ -12,6 +12,9 @@
 @endphp
 
 <div class="mx-auto max-w-3xl space-y-6">
+    <a href="{{ route('services.show', $product) }}" class="inline-flex items-center gap-2 text-sm font-bold text-brand-teal hover:text-brand-gold">
+        <span aria-hidden="true">←</span> Back to service
+    </a>
     <div>
         <p class="text-sm font-bold uppercase tracking-wider text-brand-teal">Checkout</p>
         <h1 class="mt-2 text-3xl font-extrabold text-brand-navy">{{ $product->name }}</h1>

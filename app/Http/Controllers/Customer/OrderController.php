@@ -58,9 +58,26 @@ class OrderController extends Controller
                 $data['notes'] ?? null,
             );
         } catch (RuntimeException $e) {
+            if ($this->isInsufficientBalance($e)) {
+                return $this->depositRedirect($product, (int) $data['quantity']);
+            }
+
             return back()->withInput()->withErrors(['order' => $e->getMessage()]);
         }
 
         return redirect()->route('dashboard.orders.show', $order)->with('status', 'Order '.$order->order_number.' was created.');
+    }
+
+    private function isInsufficientBalance(RuntimeException $e): bool
+    {
+        return str_contains(strtolower($e->getMessage()), 'insufficient wallet balance');
+    }
+
+    private function depositRedirect(Product $product, int $quantity)
+    {
+        $returnTo = route('dashboard.orders.create', $product, false).'?quantity='.$quantity;
+
+        return redirect()->route('dashboard.wallet.index', ['return_to' => $returnTo])
+            ->with('error', 'Insufficient wallet balance. Deposit funds to continue this order.');
     }
 }

@@ -43,11 +43,11 @@
                 <a href="{{ request()->fullUrlWithQuery(['lang' => 'en']) }}" class="rounded-lg px-3 py-1 {{ app()->getLocale() === 'en' ? 'bg-brand-navy text-white' : 'text-brand-muted hover:text-brand-navy' }}">EN</a>
                 <a href="{{ request()->fullUrlWithQuery(['lang' => 'fr']) }}" class="rounded-lg px-3 py-1 {{ app()->getLocale() === 'fr' ? 'bg-brand-navy text-white' : 'text-brand-muted hover:text-brand-navy' }}">FR</a>
             </div>
+            @include('components.theme-toggle')
 
             <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 {{ $slot }}
             </div>
         </div>
-        @include('components.theme-toggle')
     </body>
 </html>

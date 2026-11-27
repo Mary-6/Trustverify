@@ -87,6 +87,7 @@
                     @endauth
                 </nav>
                 <div class="flex items-center gap-3">
+                    @include('components.theme-toggle')
                     @auth
                         @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="hidden rounded-lg px-3 py-2 text-sm font-bold text-brand-navy hover:bg-brand-teal-soft sm:inline-flex">Admin</a>
@@ -174,6 +175,5 @@
         </footer>
     </div>
     @stack('scripts')
-    @include('components.theme-toggle')
 </body>
 </html>

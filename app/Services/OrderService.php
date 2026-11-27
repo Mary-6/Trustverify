@@ -8,6 +8,7 @@ use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\WalletTransaction;
+use App\Notifications\MarketplaceNotification;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -119,6 +120,7 @@ class OrderService
 
             $this->recordStatus($order, Order::STATUS_REFUNDED, $note ?: 'Refunded to wallet by administrator.', $actor);
             $this->audit->log('order.refunded', $order, ['note' => $note, 'amount' => $order->total_price], $actor);
+            $this->notifyUser($order, 'Order refunded', 'Order '.$order->order_number.' was refunded to your wallet.');
 
             return $order;
         });
@@ -156,6 +158,7 @@ class OrderService
 
             $this->recordStatus($order, Order::STATUS_CANCELLED, $note ?: 'Cancelled by customer.', $actor);
             $this->audit->log('order.cancelled', $order, ['note' => $note], $actor);
+            $this->notifyUser($order, 'Order cancelled', 'Order '.$order->order_number.' was cancelled and refunded to your wallet.');
 
             return $order;
         });
@@ -169,6 +172,16 @@ class OrderService
             'note' => $note,
             'created_by' => $actor?->id,
         ]);
+    }
+
+    private function notifyUser(Order $order, string $title, string $message): void
+    {
+        $order->user?->notify(new MarketplaceNotification(
+            $title,
+            $message,
+            route('dashboard.orders.show', $order),
+            ['order_id' => $order->id, 'order_number' => $order->order_number, 'status' => $order->status],
+        ));
     }
 
     private function shouldSubmitAutomatically(Product $product): bool

@@ -101,7 +101,8 @@ class VerificationFlowTest extends TestCase
             'app_slug' => 'whatsapp',
             'country_code' => 'US',
             'idempotency_key' => 'insufficient-verification',
-        ])->assertSessionHasErrors('wallet');
+        ])->assertRedirect(route('dashboard.wallet.index', ['return_to' => route('verification.index', [], false)]))
+            ->assertSessionHas('error');
 
         $this->assertSame(0, Order::count());
         $this->assertSame(100, (int) app(WalletService::class)->walletFor($user)->fresh()->balance);

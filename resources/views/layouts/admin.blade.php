@@ -82,6 +82,7 @@
                 </nav>
 
                 <div class="flex items-center gap-2">
+                    @include('components.theme-toggle')
                     <span class="hidden rounded-full bg-brand-teal-soft px-3 py-1 text-xs font-extrabold text-brand-navy sm:inline-flex">{{ auth()->user()->role }}</span>
                     <details class="relative">
                         <summary class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full bg-brand-navy text-sm font-extrabold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</summary>
@@ -121,6 +122,5 @@
         </main>
     </div>
 </div>
-@include('components.theme-toggle')
 </body>
 </html>

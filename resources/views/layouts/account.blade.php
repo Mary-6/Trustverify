@@ -50,6 +50,38 @@
 
                 <div class="flex shrink-0 items-center gap-2">
                     @auth
+                        @php($accountNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
+                        @php($accountUnread = auth()->user()->unreadNotifications()->count())
+                        <details class="relative">
+                            <summary class="relative flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-slate-200 text-brand-navy hover:bg-slate-100" aria-label="Notifications">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                @if($accountUnread > 0)
+                                    <span class="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-brand-error px-1 text-[10px] font-extrabold text-white">{{ $accountUnread > 9 ? '9+' : $accountUnread }}</span>
+                                @endif
+                            </summary>
+                            <div class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                                <div class="flex items-center justify-between px-2 py-1">
+                                    <p class="text-sm font-extrabold text-brand-navy">Notifications</p>
+                                    @if($accountUnread > 0)
+                                        <form method="POST" action="{{ route('dashboard.notifications.read-all') }}">
+                                            @csrf
+                                            <button class="text-xs font-bold text-brand-teal hover:text-brand-gold">Mark all read</button>
+                                        </form>
+                                    @endif
+                                </div>
+                                <div class="mt-1 max-h-80 overflow-y-auto">
+                                    @forelse($accountNotifications as $notification)
+                                        <a href="{{ route('dashboard.notifications.show', $notification) }}" class="block rounded-lg px-3 py-2 hover:bg-slate-100 {{ $notification->read_at ? '' : 'bg-brand-teal-soft/60' }}">
+                                            <span class="block text-sm font-bold text-brand-navy">{{ $notification->data['title'] ?? 'Notification' }}</span>
+                                            <span class="mt-0.5 block text-xs text-brand-muted">{{ \Illuminate\Support\Str::limit($notification->data['message'] ?? '', 120) }}</span>
+                                            <span class="mt-1 block text-[11px] font-semibold text-brand-muted">{{ $notification->created_at->diffForHumans() }}</span>
+                                        </a>
+                                    @empty
+                                        <p class="px-3 py-4 text-sm text-brand-muted">No notifications yet.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </details>
                         @if(auth()->user()->isAdmin())
                             <details class="relative">
                                 <summary class="cursor-pointer list-none rounded-lg bg-brand-navy px-3 py-2 text-sm font-bold text-white">Admin</summary>
@@ -83,6 +115,13 @@
                                 <a href="{{ request()->fullUrlWithQuery(['lang' => 'fr']) }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Français</a>
                                 <a href="{{ route('home') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Website</a>
                                 <a href="{{ route('profile') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">Profile</a>
+                                <button type="button" data-theme-toggle class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100">
+                                    <span>Dark mode</span>
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-navy text-white">
+                                        <svg data-theme-icon="moon" class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+                                        <svg data-theme-icon="sun" class="hidden h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+                                    </span>
+                                </button>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-slate-100">Logout</button>
@@ -98,6 +137,12 @@
             @if(session('status'))
                 <div class="mb-5 rounded-xl border border-brand-success/20 bg-brand-success/10 px-4 py-3 text-sm font-semibold text-brand-success">{{ session('status') }}</div>
             @endif
+            @if(session('error'))
+                <div class="mb-5 rounded-xl border border-brand-error/20 bg-brand-error/10 px-4 py-3 text-sm font-semibold text-brand-error">{{ session('error') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="mb-5 rounded-xl border border-brand-error/20 bg-brand-error/10 px-4 py-3 text-sm font-semibold text-brand-error">{{ $errors->first() }}</div>
+            @endif
             @if(session('api_token'))
                 <div class="mb-5 rounded-xl border border-brand-gold/40 bg-brand-gold/10 p-4">
                     <p class="text-sm font-bold text-brand-navy">Copy your API token now</p>
@@ -107,6 +152,5 @@
             @yield('content')
         </main>
     </div>
-    @include('components.theme-toggle')
 </body>
 </html>

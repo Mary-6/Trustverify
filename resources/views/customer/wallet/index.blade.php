@@ -14,11 +14,18 @@
         <div id="add-funds" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-xl font-extrabold text-brand-navy">Deposit</h2>
             <p class="mt-2 text-sm text-brand-muted">Submit a deposit request. MTN MoMo deposits are credited automatically after payment confirmation.</p>
+            @if(! empty($returnTo))
+                <div class="mt-4 rounded-xl border border-brand-teal/30 bg-brand-teal-soft p-3 text-sm">
+                    <p class="font-extrabold text-brand-navy">Deposit to continue your order.</p>
+                    <a href="{{ $returnTo }}" class="mt-2 inline-flex text-sm font-extrabold text-brand-teal hover:text-brand-gold">Return to your order →</a>
+                </div>
+            @endif
 
             @if(count($paymentMethods) > 0)
             <form method="POST" action="{{ route('dashboard.wallet.deposit') }}" class="mt-5 space-y-4">
                 @csrf
                 <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $depositKey) }}">
+                <input type="hidden" name="return_to" value="{{ $returnTo ?? '' }}">
                 <div>
                     <label class="text-sm font-bold text-brand-text" for="amount">Amount ({{ $wallet->currency }})</label>
                     <input id="amount" name="amount" type="number" min="100" step="1" value="{{ old('amount') }}" required class="mt-2 w-full rounded-xl border-slate-300 px-4 py-3">

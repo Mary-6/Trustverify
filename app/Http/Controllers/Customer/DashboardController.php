@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\VirtualNumber;
+use App\Services\OrderOperationsService;
 use App\Services\ReferralService;
 use Illuminate\Http\Request;
 
@@ -65,11 +66,19 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function order(Request $request, Order $order)
+    public function order(Request $request, Order $order, OrderOperationsService $operations)
     {
         abort_unless($order->user_id === $request->user()->id || $request->user()->isAdmin(), 403);
 
-        return view('customer.orders.show', ['order' => $order->load('product', 'histories', 'user')]);
+        $operations->refresh($order);
+        $order->refresh();
+
+        return view('customer.orders.show', [
+            'order' => $order->load('product', 'histories', 'user'),
+            'progress' => $operations->progress($order),
+            'canRequestRefill' => $operations->canRequestRefill($order),
+            'canRequestCancel' => $operations->canRequestCancel($order),
+        ]);
     }
 
     public function numbers(Request $request)

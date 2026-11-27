@@ -23,6 +23,7 @@ class WalletController extends Controller
             'transactions' => $user->walletTransactions()->latest()->paginate(20),
             'payments' => $user->payments()->latest()->paginate(10, ['*'], 'payments_page'),
             'paymentMethods' => $this->paymentMethodOptions(),
+            'returnTo' => $this->safeReturnTo($request->query('return_to')),
             'depositKey' => (string) Str::uuid(),
         ]);
     }
@@ -34,6 +35,7 @@ class WalletController extends Controller
             'method' => ['required', 'string', Rule::in($this->enabledPaymentMethods())],
             'phone' => ['nullable', 'string', 'max:30'],
             'reference_note' => ['nullable', 'string', 'max:255'],
+            'return_to' => ['nullable', 'string', 'max:2048'],
             'idempotency_key' => ['nullable', 'string', 'max:80'],
         ]);
 
@@ -41,6 +43,7 @@ class WalletController extends Controller
         $wallet = app(WalletService::class)->walletFor($user);
         $amount = (int) $data['amount'];
         $method = $data['method'];
+        $returnTo = $this->safeReturnTo($data['return_to'] ?? null);
         $useFapshi = $fapshi->isConfigured();
         $idempotencyKey = 'deposit-'.$user->id.'-'.($data['idempotency_key'] ?: (string) Str::uuid());
 
@@ -68,7 +71,7 @@ class WalletController extends Controller
                     $fapshiUserId,
                     $externalId,
                     $user->email,
-                    route('dashboard.wallet.index'),
+                    $this->walletUrl($returnTo),
                     'Wallet deposit'
                 );
             } catch (Throwable $exception) {
@@ -90,6 +93,7 @@ class WalletController extends Controller
                     'link' => $result['link'],
                     'phone' => $data['phone'] ?? null,
                     'note' => $data['reference_note'] ?? null,
+                    'return_to' => $returnTo,
                     'initiated_at' => $result['dateInitiated'] ?? null,
                 ],
             ]);
@@ -97,6 +101,24 @@ class WalletController extends Controller
             return redirect()->away($result['link']);
         }
 
+    }
+
+    private function safeReturnTo(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '' || strlen($value) > 2048 || ! str_starts_with($value, '/') || str_starts_with($value, '//') || str_contains($value, '://') || preg_match('/[\x00-\x1F\x7F]/', $value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    private function walletUrl(?string $returnTo): string
+    {
+        return $returnTo
+            ? route('dashboard.wallet.index', ['return_to' => $returnTo])
+            : route('dashboard.wallet.index');
     }
 
     private function enabledPaymentMethods(): array

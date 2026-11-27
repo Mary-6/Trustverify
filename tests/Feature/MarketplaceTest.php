@@ -454,6 +454,38 @@ class MarketplaceTest extends TestCase
         $this->assertSame(1000, (int) app(WalletService::class)->walletFor($user)->fresh()->balance);
     }
 
+    public function test_insufficient_balance_redirects_to_deposit_with_return_path(): void
+    {
+        $user = User::factory()->create();
+        app(WalletService::class)->credit($user, 100, WalletTransaction::TYPE_DEPOSIT, ['idempotency_key' => 'insufficient-smm-deposit']);
+
+        $product = Product::create([
+            'name' => 'Expensive SMM Service',
+            'type' => 'smm_service',
+            'price' => 1000,
+            'currency' => 'XAF',
+            'supplier_adapter' => 'manual',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $returnTo = route('dashboard.orders.create', $product, false).'?quantity=1';
+
+        $this->actingAs($user)->post(route('dashboard.orders.store', $product), [
+            'quantity' => 1,
+            'idempotency_key' => 'insufficient-smm-order',
+        ])->assertRedirect(route('dashboard.wallet.index', ['return_to' => $returnTo]))
+            ->assertSessionHas('error');
+
+        $this->assertSame(0, Order::count());
+        $this->assertSame(100, (int) app(WalletService::class)->walletFor($user)->fresh()->balance);
+
+        $this->get(route('dashboard.wallet.index', ['return_to' => $returnTo]))
+            ->assertOk()
+            ->assertSee('Return to your order')
+            ->assertSee($returnTo, false);
+    }
+
     public function test_admin_dashboard_and_product_filters_render(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN, 'status' => 'active']);
