@@ -92,7 +92,7 @@
                 <div>
                     <p class="text-sm font-bold text-brand-muted">Pending payments</p>
                     <p class="mt-3 text-3xl font-extrabold tracking-tight text-brand-navy dark:text-white">{{ number_format($stats['pending_payments']) }}</p>
-                    <p class="mt-1 text-sm font-semibold text-brand-muted">Deposits to verify</p>
+                    <p class="mt-1 text-sm font-semibold text-brand-muted">Payment records to reconcile</p>
                 </div>
                 <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
                     <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>

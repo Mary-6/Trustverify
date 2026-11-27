@@ -6,7 +6,7 @@
 <div class="space-y-6">
     <div>
         <h1 class="text-3xl font-extrabold text-brand-navy">Payments</h1>
-        <p class="mt-1 text-brand-muted">Verify deposits before crediting wallets.</p>
+        <p class="mt-1 text-brand-muted">Fapshi deposits are credited automatically. Use this page for payment reconciliation.</p>
     </div>
     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <form method="GET" class="mb-5 flex gap-2">
@@ -33,8 +33,11 @@
                             <td class="py-3">
                                 @if($payment->status === 'pending')
                                     <div class="flex gap-2">
-                                        <form method="POST" action="{{ route('admin.payments.verify', $payment) }}">@csrf<button class="text-sm font-bold text-brand-success">Verify</button></form>
-                                        <form method="POST" action="{{ route('admin.payments.reject', $payment) }}">@csrf<button class="text-sm font-bold text-brand-error">Reject</button></form>
+                                        @if($payment->gateway === 'fapshi')
+                                            <form method="POST" action="{{ route('admin.payments.verify', $payment) }}">@csrf<button class="text-sm font-bold text-brand-success">Sync Fapshi</button></form>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.payments.reject', $payment) }}">@csrf<button class="text-sm font-bold text-brand-error">Reject</button></form>
+                                        @endif
                                     </div>
                                 @endif
                             </td>

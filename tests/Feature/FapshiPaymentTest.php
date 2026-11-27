@@ -128,6 +128,66 @@ class FapshiPaymentTest extends TestCase
         $this->assertSame(1, WalletTransaction::where('wallet_id', $wallet->id)->where('type', 'deposit')->count());
     }
 
+    public function test_admin_cannot_manually_verify_non_fapshi_payment(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN, 'status' => 'active']);
+        $user = User::factory()->create();
+
+        $payment = Payment::create([
+            'user_id' => $user->id,
+            'amount' => 1000,
+            'currency' => 'XAF',
+            'gateway' => 'manual',
+            'reference' => 'MANUAL-1',
+            'status' => Payment::STATUS_PENDING,
+            'idempotency_key' => 'manual-payment-1',
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.payments.verify', $payment))->assertStatus(422);
+
+        $this->assertSame(Payment::STATUS_PENDING, $payment->fresh()->status);
+        $this->assertSame(0, WalletTransaction::count());
+    }
+
+    public function test_admin_can_sync_successful_fapshi_payment(): void
+    {
+        $this->configureFapshi();
+
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN, 'status' => 'active']);
+        $user = User::factory()->create();
+        $payment = Payment::create([
+            'user_id' => $user->id,
+            'amount' => 1000,
+            'currency' => 'XAF',
+            'gateway' => 'fapshi',
+            'reference' => 'TRX999',
+            'status' => Payment::STATUS_PENDING,
+            'idempotency_key' => 'fapshi-admin-sync-1',
+            'payload' => ['external_id' => 'FAP-ADMIN123'],
+        ]);
+
+        Http::fake([
+            'https://fapshi.test/payment-status/TRX999' => Http::response([
+                'transId' => 'TRX999',
+                'status' => 'SUCCESSFUL',
+                'amount' => 1000,
+                'externalId' => 'FAP-ADMIN123',
+                'userId' => 'u'.$user->id,
+            ], 200),
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.payments.verify', $payment))
+            ->assertSessionHas('status', 'Fapshi payment verified and wallet credited.');
+
+        $payment->refresh();
+        $wallet = Wallet::where('user_id', $user->id)->firstOrFail();
+
+        $this->assertSame(Payment::STATUS_SUCCESS, $payment->status);
+        $this->assertSame('1000.00', (string) $wallet->balance);
+        $this->assertSame('SUCCESSFUL', $payment->payload['verified_transaction']['status']);
+        $this->assertSame(1, WalletTransaction::where('wallet_id', $wallet->id)->where('type', 'deposit')->count());
+    }
+
     public function test_fapshi_webhook_rejects_invalid_secret(): void
     {
         $this->configureFapshi();
